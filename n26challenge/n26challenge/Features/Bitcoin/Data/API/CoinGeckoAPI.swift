@@ -19,14 +19,17 @@ enum CoingeckoEndpoint {
     static func marketChartRange(coin: CryptoCoin, currency: Currency = .eur, from startDate: Date, to endDate: Date) -> EndpointBuilder<MarketChartResponse, EmptyBody> {
         EndpointBuilder<MarketChartResponse, EmptyBody>("/api/v3/coins/\(coin.apiIdentifier)/market_chart/range")
             .withQuery("vs_currency", currency.apiCode)
-            .withQuery("from", String(Int(startDate.timeIntervalSince1970)))
-            .withQuery("to", String(Int(endDate.addingTimeInterval(86_399).timeIntervalSince1970)))
+            .withQuery("from", timestampString(for: startDate))
+            .withQuery("to", timestampString(for: Calendar.utc.endOfDay(for: endDate)))
     }
 
     static func history(coin: CryptoCoin, date: Date) -> EndpointBuilder<HistoricalPriceResponse, EmptyBody> {
         EndpointBuilder<HistoricalPriceResponse, EmptyBody>("/api/v3/coins/\(coin.apiIdentifier)/history")
             .withQuery("date", DateFormatter.apiDayString(from: date))
             .withQuery("localization", "false")
+    }
+    private static func timestampString(for date: Date) -> String {
+        String(Int(date.timeIntervalSince1970))
     }
 }
 

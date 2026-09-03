@@ -16,4 +16,10 @@ extension Calendar {
         }
         return result
     }
+
+    func endOfDay(for date: Date) -> Date {
+        let startOfDay = startOfDay(for: date)
+        let nextDay = requiredDate(byAdding: .day, value: 1, to: startOfDay)
+        return requiredDate(byAdding: .second, value: -1, to: nextDay)
+    }
 }

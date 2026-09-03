@@ -1,13 +1,13 @@
 import Foundation
 
-nonisolated struct Price: Equatable, Identifiable, Sendable {
+struct Price: Equatable, Identifiable, Sendable {
     let date: Date
     let eur: Decimal
     let usd: Decimal?
     let gbp: Decimal?
     let coin: CryptoCoin
 
-    nonisolated init(
+    init(
         date: Date,
         eur: Decimal,
         usd: Decimal? = nil,
@@ -21,5 +21,5 @@ nonisolated struct Price: Equatable, Identifiable, Sendable {
         self.coin = coin
     }
 
-    nonisolated var id: Date { Calendar.utc.startOfDay(for: date) }
+    var id: Date { Calendar.utc.startOfDay(for: date) }
 }

@@ -1,11 +1,11 @@
 import Foundation
 
-nonisolated struct MarketPricePoint: Equatable, Sendable {
+struct MarketPricePoint: Equatable, Sendable {
     let date: Date
     let eur: Decimal
     let coin: CryptoCoin
 
-    nonisolated init(date: Date, eur: Decimal, coin: CryptoCoin = .bitcoin) {
+    init(date: Date, eur: Decimal, coin: CryptoCoin = .bitcoin) {
         self.date = date
         self.eur = eur
         self.coin = coin

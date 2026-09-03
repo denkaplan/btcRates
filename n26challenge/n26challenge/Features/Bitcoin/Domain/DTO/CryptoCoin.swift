@@ -1,16 +1,16 @@
 import Foundation
 
-nonisolated enum CryptoCoin: Equatable, Sendable {
+enum CryptoCoin: Equatable, Sendable {
     case bitcoin
 
-    nonisolated var apiIdentifier: String {
+    var apiIdentifier: String {
         switch self {
         case .bitcoin:
             return "bitcoin"
         }
     }
 
-    nonisolated var displaySymbol: String {
+    var displaySymbol: String {
         switch self {
         case .bitcoin:
             return "BTC"

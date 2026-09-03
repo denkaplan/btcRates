@@ -5,12 +5,14 @@ import Testing
 @Suite(.serialized)
 struct NetworkProviderTests {
     @Test func executeBuildsRequestAndDecodesResponseUsingInjectedDecoder() async throws {
+        // Arrange
         let session = makeSession { request in
             #expect(request.url?.absoluteString == "https://example.com/api/test?search=bitcoin")
             #expect(request.httpMethod == "GET")
             #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
             #expect(request.value(forHTTPHeaderField: "X-Test") == "1")
 
+        // Act
             let response = HTTPURLResponse(
                 url: request.url ?? requiredURL("https://example.com"),
                 statusCode: 200,
@@ -31,10 +33,12 @@ struct NetworkProviderTests {
 
         let response = try await provider.execute(endpoint)
 
+        // Assert
         #expect(response == TestResponse(displayName: "Bitcoin"))
     }
 
     @Test func executeReturnsBlankForBlankResponseType() async throws {
+        // Arrange
         let session = makeSession { request in
             let response = HTTPURLResponse(
                 url: request.url ?? requiredURL("https://example.com"),
@@ -49,12 +53,15 @@ struct NetworkProviderTests {
             session: session
         )
 
+        // Act
         let response: Blank = try await provider.execute(EndpointBuilder<Blank, [String: String]>("/empty"))
 
         _ = response
+        // Assert
     }
 
     @Test func executeThrowsHTTPErrorForNonSuccessStatusCode() async throws {
+        // Arrange
         let session = makeSession { request in
             let response = HTTPURLResponse(
                 url: request.url ?? requiredURL("https://example.com"),
@@ -69,6 +76,8 @@ struct NetworkProviderTests {
             session: session
         )
 
+        // Act
+        // Assert
         do {
             let _: Blank = try await provider.execute(EndpointBuilder<Blank, [String: String]>("/failure"))
             Issue.record("Expected HTTP error")

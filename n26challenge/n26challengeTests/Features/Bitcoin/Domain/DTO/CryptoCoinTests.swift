@@ -4,6 +4,9 @@ import Testing
 
 struct CryptoCoinTests {
     @Test func bitcoinExposesApiIdentifierAndDisplaySymbol() {
+        // Arrange
+        // Act
+        // Assert
         #expect(CryptoCoin.bitcoin.apiIdentifier == "bitcoin")
         #expect(CryptoCoin.bitcoin.displaySymbol == "BTC")
     }

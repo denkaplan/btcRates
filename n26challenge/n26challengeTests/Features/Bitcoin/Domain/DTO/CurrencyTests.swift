@@ -4,6 +4,9 @@ import Testing
 
 struct CurrencyTests {
     @Test func supportedCurrenciesExposeTypedMetadata() {
+        // Arrange
+        // Act
+        // Assert
         #expect(Currency.allCases == [.eur, .usd, .gbp])
         #expect(Currency.eur.id == "EUR")
         #expect(Currency.eur.code == "EUR")

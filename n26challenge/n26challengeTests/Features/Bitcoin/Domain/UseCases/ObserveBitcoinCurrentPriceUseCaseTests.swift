@@ -4,6 +4,7 @@ import Testing
 
 struct ObserveBitcoinCurrentPriceUseCaseTests {
     @Test func emitsImmediatelyAndAfterSleepInterval() async throws {
+        // Arrange
         let prices = [
             Price(date: Date(), eur: 60_000),
             Price(date: Date(), eur: 61_000)
@@ -13,21 +14,26 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
         )
         var iterator = useCase.stream(interval: 0.01).makeAsyncIterator()
 
+        // Act
         let first = await iterator.next()
         let second = await iterator.next()
 
+        // Assert
         #expect(try first?.get().eur == 60_000)
         #expect(try second?.get().eur == 61_000)
     }
 
     @Test func emitsFailureWhenRepositoryThrows() async throws {
+        // Arrange
         let useCase = ObserveBitcoinCurrentPriceUseCaseImpl(
             repository: FailingCurrentPriceRepository(error: NetworkError.unknown)
         )
         var iterator = useCase.stream(interval: 10).makeAsyncIterator()
 
+        // Act
         let first = await iterator.next()
 
+        // Assert
         do {
             _ = try first?.get()
             Issue.record("Expected current price stream to emit a failure")

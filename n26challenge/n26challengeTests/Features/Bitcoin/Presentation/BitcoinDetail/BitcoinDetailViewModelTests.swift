@@ -5,6 +5,7 @@ import Testing
 @MainActor
 struct BitcoinDetailViewModelTests {
     @Test func initShowsFallbackHistoryPriceWhileLoading() {
+        // Arrange
         let initialRow = makeInitialRow()
         let viewModel = BitcoinDetailViewModel(
             initialHistoryRow: initialRow,
@@ -13,6 +14,8 @@ struct BitcoinDetailViewModelTests {
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
+        // Act
+        // Assert
         #expect(viewModel.state == .loading(BitcoinDetailPresentationalModel(
             title: "Fallback title",
             dateText: initialRow.title,
@@ -21,6 +24,7 @@ struct BitcoinDetailViewModelTests {
     }
 
     @Test func onAppearLoadsFullPresentationModel() async throws {
+        // Arrange
         let initialRow = makeInitialRow()
         let expected = makeFullModel()
         let viewModel = BitcoinDetailViewModel(
@@ -30,13 +34,16 @@ struct BitcoinDetailViewModelTests {
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         #expect(viewModel.state == .loaded(expected, message: nil))
     }
 
     @Test func onAppearFailureKeepsFallbackDataAndShowsInlineError() async throws {
+        // Arrange
         let initialRow = makeInitialRow()
         let errorConverter = MockErrorPresentationalModelConverter()
         let viewModel = BitcoinDetailViewModel(
@@ -46,9 +53,11 @@ struct BitcoinDetailViewModelTests {
             errorPresentationalModelConverter: errorConverter
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         #expect(viewModel.state == .loaded(BitcoinDetailPresentationalModel(
             title: "Fallback title",
             dateText: initialRow.title,
@@ -57,6 +66,7 @@ struct BitcoinDetailViewModelTests {
     }
 
     @Test func retryReloadsFullDataAfterFallback() async throws {
+        // Arrange
         let initialRow = makeInitialRow()
         let expected = makeFullModel()
         let viewModel = BitcoinDetailViewModel(
@@ -66,9 +76,11 @@ struct BitcoinDetailViewModelTests {
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
+        // Act
         viewModel.retry()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         #expect(viewModel.state == .loaded(expected, message: nil))
     }
 }

@@ -4,6 +4,7 @@ import Testing
 
 struct GetBitcoinHistoryUseCaseTests {
     @Test func buildsRequestedDaysFromMarketPricesInDescendingOrder() async throws {
+        // Arrange
         let today = requiredAPIDate("02-09-2026")
         let repository = MockBitcoinRepository(
             currentPrice: Price(date: today, eur: 60_000),
@@ -15,8 +16,10 @@ struct GetBitcoinHistoryUseCaseTests {
         )
         let useCase = GetBitcoinHistoryUseCaseImpl(repository: repository, todayProvider: { today })
 
+        // Act
         let history = try await useCase.execute(daysIncludingToday: 14)
 
+        // Assert
         #expect(history.count == 14)
         #expect(Calendar.utc.isDate(history[0].date, inSameDayAs: today))
         #expect(history[0].eur == 60_000)
@@ -25,22 +28,28 @@ struct GetBitcoinHistoryUseCaseTests {
     }
 
     @Test func usesLatestPriceWhenMultiplePointsExistForSameDay() async throws {
+        // Arrange
         let day = requiredAPIDate("01-09-2026")
         let early = day.addingTimeInterval(60)
         let late = day.addingTimeInterval(3_600)
         let useCase = GetBitcoinHistoryUseCaseImpl(repository: MockBitcoinRepository.empty)
 
+        // Act
         let history = useCase.latestPricePerDay(from: [
             MarketPricePoint(date: early, eur: 58_000),
             MarketPricePoint(date: late, eur: 59_000)
         ])
 
+        // Assert
         #expect(history == [HistoryPrice(date: day, eur: 59_000)])
     }
 
     @Test func rejectsInvalidRange() async throws {
+        // Arrange
         let useCase = GetBitcoinHistoryUseCaseImpl(repository: MockBitcoinRepository.empty)
 
+        // Act
+        // Assert
         await #expect(throws: BitcoinHistoryUseCaseError.invalidRange) {
             _ = try await useCase.execute(daysIncludingToday: 0)
         }

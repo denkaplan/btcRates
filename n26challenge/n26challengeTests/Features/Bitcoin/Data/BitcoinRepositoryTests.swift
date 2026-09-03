@@ -4,6 +4,7 @@ import Testing
 
 struct BitcoinRepositoryTests {
     @Test func fetchCurrentPriceMapsResponseToDomainPrice() async throws {
+        // Arrange
         let now = requiredAPIDate("02-09-2026")
         let provider = MockNetworkProvider { endpoint in
             #expect(endpoint.path == "/api/v3/simple/price")
@@ -13,23 +14,29 @@ struct BitcoinRepositoryTests {
         }
         let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider, nowProvider: { now })
 
+        // Act
         let price = try await repository.fetchCurrentPrice(for: .bitcoin)
 
+        // Assert
         #expect(price == Price(date: now, eur: 60_000, usd: 65_000, gbp: 51_000))
     }
 
     @Test func fetchCurrentPriceThrowsWhenEURIsMissing() async throws {
+        // Arrange
         let provider = MockNetworkProvider { _ in
             SimplePriceResponse(bitcoin: CurrencyPriceResponse(eur: nil, usd: 65_000, gbp: 51_000))
         }
         let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
+        // Act
+        // Assert
         await #expect(throws: BitcoinRepositoryError.missingPrice) {
             _ = try await repository.fetchCurrentPrice(for: .bitcoin)
         }
     }
 
     @Test func fetchHistoricalPriceMapsResponseToDomainPrice() async throws {
+        // Arrange
         let date = requiredAPIDate("01-09-2026")
         let provider = MockNetworkProvider { endpoint in
             #expect(endpoint.path == "/api/v3/coins/bitcoin/history")
@@ -41,12 +48,15 @@ struct BitcoinRepositoryTests {
         }
         let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
+        // Act
         let price = try await repository.fetchHistoricalPrice(for: .bitcoin, on: date)
 
+        // Assert
         #expect(price == Price(date: date, eur: 59_000, usd: 64_000, gbp: 50_000))
     }
 
     @Test func fetchHistoricalPriceThrowsWhenEURIsMissing() async throws {
+        // Arrange
         let date = requiredAPIDate("01-09-2026")
         let provider = MockNetworkProvider { _ in
             HistoricalPriceResponse(
@@ -57,12 +67,15 @@ struct BitcoinRepositoryTests {
         }
         let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
+        // Act
+        // Assert
         await #expect(throws: BitcoinRepositoryError.missingPrice) {
             _ = try await repository.fetchHistoricalPrice(for: .bitcoin, on: date)
         }
     }
 
     @Test func fetchMarketPricesMapsChartPointsWithoutSortingOrGrouping() async throws {
+        // Arrange
         let start = requiredAPIDate("20-08-2026")
         let end = requiredAPIDate("21-08-2026")
         let provider = MockNetworkProvider { endpoint in
@@ -74,8 +87,10 @@ struct BitcoinRepositoryTests {
         }
         let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
+        // Act
         let prices = try await repository.fetchMarketPrices(for: .bitcoin, from: start, to: end)
 
+        // Assert
         #expect(prices == [
             MarketPricePoint(date: start, eur: 58_000),
             MarketPricePoint(date: end, eur: 59_000)

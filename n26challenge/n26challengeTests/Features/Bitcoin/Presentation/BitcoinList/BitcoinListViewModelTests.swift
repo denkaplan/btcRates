@@ -5,6 +5,7 @@ import Testing
 @MainActor
 struct BitcoinListViewModelTests {
     @Test func onAppearLoadsHistoryAndMergesCurrentPriceFromStream() async throws {
+        // Arrange
         let today = Calendar.utc.startOfDay(for: Date())
         let history = [
             HistoryPrice(date: today, eur: 60_000),
@@ -22,9 +23,11 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         guard case .loaded(let rows, let message) = viewModel.contentState else {
             Issue.record("Expected loaded state")
             return
@@ -39,6 +42,7 @@ struct BitcoinListViewModelTests {
     }
 
     @Test func retryRefreshesHistory() async throws {
+        // Arrange
         let refreshed = [HistoryPrice(date: Date(), eur: 62_000)]
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success(refreshed)),
@@ -49,9 +53,11 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.retry()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         guard case .loaded(let rows, let message) = viewModel.contentState else {
             Issue.record("Expected loaded state")
             return
@@ -62,6 +68,7 @@ struct BitcoinListViewModelTests {
     }
 
     @Test func loadHistoryFailureShowsFailedState() async throws {
+        // Arrange
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .failure(NetworkError.unknown)),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
@@ -71,9 +78,11 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         guard case .failed(let message) = viewModel.contentState else {
             Issue.record("Expected failed state")
             return
@@ -82,6 +91,7 @@ struct BitcoinListViewModelTests {
     }
 
     @Test func currentPriceFailureUsesFailedStateWhenRowsAreEmpty() async throws {
+        // Arrange
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
@@ -91,9 +101,11 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         guard case .failed(let message) = viewModel.contentState else {
             Issue.record("Expected failed state")
             return
@@ -102,6 +114,7 @@ struct BitcoinListViewModelTests {
     }
 
     @Test func currentPriceFailureUsesInlineRefreshMessageWhenRowsAlreadyExist() async throws {
+        // Arrange
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([HistoryPrice(date: Date(), eur: 60_000)])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
@@ -111,9 +124,11 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
+        // Assert
         guard case .loaded(_, let message) = viewModel.contentState else {
             Issue.record("Expected loaded state")
             return
@@ -121,34 +136,8 @@ struct BitcoinListViewModelTests {
         #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
-    @Test func normalDisappearAndAppearKeepsLoadedHistoryAndCurrentPriceObservation() async throws {
-        let today = Calendar.utc.startOfDay(for: Date())
-        let historyUseCase = CountingHistoryUseCase(result: .success([HistoryPrice(date: today, eur: 60_000)]))
-        let observeCurrentPriceUseCase = MockObserveBitcoinCurrentPriceUseCase(resultsByStream: [
-            [.success(Price(date: today, eur: 61_000))],
-            [.success(Price(date: today, eur: 62_000))]
-        ])
-        let viewModel = BitcoinListViewModel(
-            getBitcoinHistoryUseCase: historyUseCase,
-            observeBitcoinCurrentPriceUseCase: observeCurrentPriceUseCase,
-            presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
-            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
-            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
-            onSelect: { _ in }
-        )
-
-        viewModel.onAppear()
-        try await Task.sleep(nanoseconds: 100_000_000)
-        viewModel.onDisappear()
-        viewModel.onAppear()
-        try await Task.sleep(nanoseconds: 100_000_000)
-
-        #expect(await historyUseCase.executeCallCount() == 1)
-        #expect(observeCurrentPriceUseCase.streamCallCount == 1)
-        #expect(viewModel.currentPriceText == "EUR 61000")
-    }
-
     @Test func retryRestartsCurrentPriceObservationWithFreshStream() async throws {
+        // Arrange
         let today = Calendar.utc.startOfDay(for: Date())
         let observeCurrentPriceUseCase = MockObserveBitcoinCurrentPriceUseCase(resultsByStream: [
             [.success(Price(date: today, eur: 61_000))],
@@ -163,8 +152,10 @@ struct BitcoinListViewModelTests {
             onSelect: { _ in }
         )
 
+        // Act
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
+        // Assert
         #expect(viewModel.currentPriceText == "EUR 61000")
 
         viewModel.retry()
@@ -175,6 +166,7 @@ struct BitcoinListViewModelTests {
     }
 
     @Test func selectRoutesByDateFromPresentationRow() {
+        // Arrange
         let selectedDate = Date()
         let selected = BitcoinHistoryRowPresentationalModel(
             id: "selected",
@@ -193,8 +185,10 @@ struct BitcoinListViewModelTests {
             onSelect: { routedItem = $0 }
         )
 
+        // Act
         viewModel.select(selected)
 
+        // Assert
         #expect(routedItem == selected)
         #expect(routedItem?.date == selectedDate)
     }

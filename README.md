@@ -1,4 +1,4 @@
-# n26challenge
+# Bitcoin price
 
 Small iPhone app for the N26 coding challenge. It fetches the Bitcoin exchange rate from the CoinGecko API and shows:
 

@@ -9,13 +9,14 @@ final class BitcoinListViewModel: ObservableObject {
 
     enum State: Equatable {
         case loading
-        case loaded(rows: [BitcoinHistoryRowPresentationalModel], message: String?)
-        case failed(String)
+        case loaded(rows: [BitcoinHistoryRowPresentationalModel], message: ErrorPresentationalModel?)
+        case failed(ErrorPresentationalModel)
     }
 
     private let getBitcoinHistoryUseCase: GetBitcoinHistoryUseCase
     private let observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase
     private let presentationalModelConverter: BitcoinListPresentationalModelConverter
+    private let errorPresentationalModelConverter: ErrorPresentationalModelConverter
     private let onSelect: (Date) -> Void
     private var currentPriceObservationTask: Task<Void, Never>?
     private var historyTask: Task<Void, Never>?
@@ -24,11 +25,13 @@ final class BitcoinListViewModel: ObservableObject {
         getBitcoinHistoryUseCase: GetBitcoinHistoryUseCase,
         observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase,
         presentationalModelConverter: BitcoinListPresentationalModelConverter,
+        errorPresentationalModelConverter: ErrorPresentationalModelConverter,
         onSelect: @escaping (Date) -> Void
     ) {
         self.getBitcoinHistoryUseCase = getBitcoinHistoryUseCase
         self.observeBitcoinCurrentPriceUseCase = observeBitcoinCurrentPriceUseCase
         self.presentationalModelConverter = presentationalModelConverter
+        self.errorPresentationalModelConverter = errorPresentationalModelConverter
         self.onSelect = onSelect
     }
 
@@ -67,7 +70,7 @@ final class BitcoinListViewModel: ObservableObject {
             do {
                 apply(presentationalModelConverter.convert(history: try await getBitcoinHistoryUseCase.execute(daysIncludingToday: 14)))
             } catch {
-                contentState = .failed(error.localizedDescription)
+                contentState = .failed(errorPresentationalModelConverter.convert(error))
             }
         }
     }
@@ -83,9 +86,9 @@ final class BitcoinListViewModel: ObservableObject {
                     markUpdated()
                 case .failure(let error):
                     if contentRows.isEmpty {
-                        contentState = .failed(error.localizedDescription)
+                        contentState = .failed(errorPresentationalModelConverter.convert(error))
                     } else {
-                        contentState = .loaded(rows: contentRows, message: "Could not refresh live price. Pull to retry.")
+                        contentState = .loaded(rows: contentRows, message: errorPresentationalModelConverter.livePriceRefreshError())
                     }
                 }
             }

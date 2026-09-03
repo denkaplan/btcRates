@@ -1,20 +1,18 @@
 import SwiftUI
 
 struct ErrorStateView: View {
-    let title: String
-    let systemImage: String
-    let message: String
+    let model: ErrorPresentationalModel
     let retry: () -> Void
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: systemImage)
+            Image(systemName: model.systemImage)
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
-            Text(title)
+            Text(model.title)
                 .font(.headline)
                 .multilineTextAlignment(.center)
-            Text(message)
+            Text(model.message)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

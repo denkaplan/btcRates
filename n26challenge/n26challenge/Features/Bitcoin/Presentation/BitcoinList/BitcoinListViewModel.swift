@@ -4,10 +4,14 @@ import Foundation
 @MainActor
 final class BitcoinListViewModel: ObservableObject {
     @Published private(set) var currentPriceText = "—"
-    @Published private(set) var rows: [BitcoinHistoryRowPresentationalModel] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var errorMessage: String?
+    @Published private(set) var contentState: State = .loading
     @Published private(set) var lastUpdatedText: String?
+
+    enum State: Equatable {
+        case loading
+        case loaded(rows: [BitcoinHistoryRowPresentationalModel], message: String?)
+        case failed(String)
+    }
 
     private let getBitcoinHistoryUseCase: GetBitcoinHistoryUseCase
     private let observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase
@@ -55,16 +59,15 @@ final class BitcoinListViewModel: ObservableObject {
 
     private func loadHistory() {
         historyTask?.cancel()
-        isLoading = rows.isEmpty
-        errorMessage = nil
+        if contentRows.isEmpty {
+            contentState = .loading
+        }
         historyTask = Task { [weak self] in
             guard let self else { return }
             do {
                 apply(presentationalModelConverter.convert(history: try await getBitcoinHistoryUseCase.execute(daysIncludingToday: 14)))
-                errorMessage = nil
             } catch {
-                errorMessage = error.localizedDescription
-                isLoading = false
+                contentState = .failed(error.localizedDescription)
             }
         }
     }
@@ -78,10 +81,12 @@ final class BitcoinListViewModel: ObservableObject {
                 case .success(let price):
                     mergeCurrentPrice(presentationalModelConverter.convert(currentPrice: price))
                     markUpdated()
-                    errorMessage = nil
                 case .failure(let error):
-                    errorMessage = rows.isEmpty ? error.localizedDescription : "Could not refresh live price. Pull to retry."
-                    isLoading = false
+                    if contentRows.isEmpty {
+                        contentState = .failed(error.localizedDescription)
+                    } else {
+                        contentState = .loaded(rows: contentRows, message: "Could not refresh live price. Pull to retry.")
+                    }
                 }
             }
         }
@@ -89,12 +94,12 @@ final class BitcoinListViewModel: ObservableObject {
 
     private func apply(_ model: BitcoinListPresentationalModel) {
         currentPriceText = model.currentPriceText
-        rows = model.rows
+        contentState = .loaded(rows: model.rows, message: nil)
         markUpdated()
-        isLoading = false
     }
 
     private func mergeCurrentPrice(_ row: BitcoinHistoryRowPresentationalModel) {
+        var rows = contentRows
         if let index = rows.firstIndex(where: { $0.id == row.id }) {
             rows[index] = row
         } else {
@@ -102,6 +107,12 @@ final class BitcoinListViewModel: ObservableObject {
         }
         rows.sort { $0.date > $1.date }
         currentPriceText = row.priceText
+        contentState = .loaded(rows: rows, message: nil)
+    }
+
+    private var contentRows: [BitcoinHistoryRowPresentationalModel] {
+        guard case .loaded(let rows, _) = contentState else { return [] }
+        return rows
     }
 
     private func markUpdated() {

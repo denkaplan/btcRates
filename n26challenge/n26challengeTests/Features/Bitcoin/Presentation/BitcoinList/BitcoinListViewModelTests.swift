@@ -23,12 +23,15 @@ struct BitcoinListViewModelTests {
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.rows.count == 2)
-        #expect(viewModel.rows.first?.priceText == "EUR 61000")
+        guard case .loaded(let rows, let message) = viewModel.contentState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+        #expect(rows.count == 2)
+        #expect(rows.first?.priceText == "EUR 61000")
+        #expect(message == nil)
         #expect(viewModel.currentPriceText == "EUR 61000")
         #expect(viewModel.lastUpdatedText != nil)
-        #expect(viewModel.isLoading == false)
-        #expect(viewModel.errorMessage == nil)
         #expect(converter.convertedHistory == history)
         #expect(converter.convertedCurrentPrices.map(\.eur) == [61_000])
     }
@@ -45,13 +48,16 @@ struct BitcoinListViewModelTests {
         viewModel.retry()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.rows.map(\.priceText) == ["EUR 62000"])
+        guard case .loaded(let rows, let message) = viewModel.contentState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+        #expect(rows.map(\.priceText) == ["EUR 62000"])
+        #expect(message == nil)
         #expect(viewModel.currentPriceText == "EUR 62000")
-        #expect(viewModel.isLoading == false)
-        #expect(viewModel.errorMessage == nil)
     }
 
-    @Test func loadHistoryFailureShowsErrorAndStopsLoading() async throws {
+    @Test func loadHistoryFailureShowsFailedState() async throws {
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .failure(NetworkError.unknown)),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
@@ -62,12 +68,14 @@ struct BitcoinListViewModelTests {
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.rows.isEmpty)
-        #expect(viewModel.isLoading == false)
-        #expect(viewModel.errorMessage != nil)
+        guard case .failed(let message) = viewModel.contentState else {
+            Issue.record("Expected failed state")
+            return
+        }
+        #expect(message.isEmpty == false)
     }
 
-    @Test func currentPriceFailureUsesFullErrorWhenRowsAreEmpty() async throws {
+    @Test func currentPriceFailureUsesFailedStateWhenRowsAreEmpty() async throws {
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
@@ -78,11 +86,14 @@ struct BitcoinListViewModelTests {
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.errorMessage != nil)
-        #expect(viewModel.isLoading == false)
+        guard case .failed(let message) = viewModel.contentState else {
+            Issue.record("Expected failed state")
+            return
+        }
+        #expect(message.isEmpty == false)
     }
 
-    @Test func currentPriceFailureUsesRefreshMessageWhenRowsAlreadyExist() async throws {
+    @Test func currentPriceFailureUsesInlineRefreshMessageWhenRowsAlreadyExist() async throws {
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([HistoryPrice(date: Date(), eur: 60_000)])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
@@ -93,8 +104,11 @@ struct BitcoinListViewModelTests {
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.errorMessage == "Could not refresh live price. Pull to retry.")
-        #expect(viewModel.isLoading == false)
+        guard case .loaded(_, let message) = viewModel.contentState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+        #expect(message == "Could not refresh live price. Pull to retry.")
     }
 
     @Test func selectRoutesByDateFromPresentationRow() {

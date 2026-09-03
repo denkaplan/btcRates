@@ -12,16 +12,11 @@ final class BitcoinListCoordinator: Coordinator {
     }
 
     override func start() {
-        let viewModel = BitcoinListViewModel(
-            getBitcoinHistoryUseCase: dependencies.getBitcoinHistoryUseCase,
-            observeBitcoinCurrentPriceUseCase: dependencies.observeBitcoinCurrentPriceUseCase,
-            presentationalModelConverter: dependencies.bitcoinListPresentationalModelConverter,
-            onSelect: { [weak self] date in
-                self?.showDetails(for: date)
-            }
-        )
-        let viewController = UIHostingController(rootView: BitcoinListView(viewModel: viewModel))
-        navigationController.setViewControllers([viewController], animated: false)
+        let assembly = BitcoinListAssembly(dependencies: dependencies) { [weak self] date in
+            self?.showDetails(for: date)
+        }
+        let module = assembly.assemble()
+        navigationController.setViewControllers([module.view], animated: false)
         navigationController.setNavigationBarHidden(true, animated: false)
     }
 

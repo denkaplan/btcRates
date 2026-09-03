@@ -41,32 +41,12 @@ struct BitcoinDetailView: View {
 
             Section("Currencies") {
                 ForEach(model.currencyRows) { row in
-                    CurrencyRow(row: row)
+                    BitcoinCurrencyRowView(row: row)
                 }
             }
         }
     }
 }
-
-private struct CurrencyRow: View {
-    let row: BitcoinCurrencyPresentationalModel
-
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(row.code)
-                .font(.headline.monospaced())
-                .frame(width: 48, alignment: .leading)
-            Text(row.title)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Text(row.valueText)
-                .font(.body.monospacedDigit())
-                .fontWeight(.semibold)
-        }
-        .padding(.vertical, 4)
-    }
-}
-
 #Preview {
     BitcoinDetailView(
         viewModel: BitcoinDetailViewModel(

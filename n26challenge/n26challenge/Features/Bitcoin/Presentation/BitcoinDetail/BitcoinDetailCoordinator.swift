@@ -23,20 +23,14 @@ final class BitcoinDetailCoordinator: Coordinator {
     }
 
     override func start() {
-        let viewModel = BitcoinDetailViewModel(
-            date: date,
-            getDetailPriceUseCase: dependencies.getBitcoinDetailPriceUseCase,
-            presentationalModelConverter: dependencies.bitcoinDetailPresentationalModelConverter
-        )
-        let viewController = UIHostingController(rootView: BitcoinDetailView(viewModel: viewModel))
-        viewController.title = DateFormatter.displayDay.string(from: date)
-        viewController.navigationItem.largeTitleDisplayMode = .never
+        let assembly = BitcoinDetailAssembly(dependencies: dependencies, date: date)
+        let module = assembly.assemble()
 
-        self.viewController = viewController
+        self.viewController = module.view
         previousNavigationDelegate = navigationController.delegate
         navigationController.delegate = self
         navigationController.setNavigationBarHidden(false, animated: true)
-        navigationController.pushViewController(viewController, animated: true)
+        navigationController.pushViewController(module.view, animated: true)
     }
 
     func finish() {
@@ -46,6 +40,8 @@ final class BitcoinDetailCoordinator: Coordinator {
         onFinish(self)
     }
 }
+
+// MARK: UINavigationControllerDelegate
 
 extension BitcoinDetailCoordinator: UINavigationControllerDelegate {
     func navigationController(

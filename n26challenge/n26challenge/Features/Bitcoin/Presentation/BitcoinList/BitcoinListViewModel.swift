@@ -44,15 +44,11 @@ final class BitcoinListViewModel: ObservableObject {
     }
 
     func onAppear() {
+        if contentRows.isEmpty {
+            loadHistory()
+        }
         guard currentPriceObservationTask == nil else { return }
-        loadHistory()
         observeCurrentPrice()
-    }
-
-    func onDisappear() {
-        currentPriceObservationTask?.cancel()
-        currentPriceObservationTask = nil
-        historyTask?.cancel()
     }
 
     func retry() {

@@ -121,6 +121,33 @@ struct BitcoinListViewModelTests {
         #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
+    @Test func normalDisappearAndAppearKeepsLoadedHistoryAndCurrentPriceObservation() async throws {
+        let today = Calendar.utc.startOfDay(for: Date())
+        let historyUseCase = CountingHistoryUseCase(result: .success([HistoryPrice(date: today, eur: 60_000)]))
+        let observeCurrentPriceUseCase = MockObserveBitcoinCurrentPriceUseCase(resultsByStream: [
+            [.success(Price(date: today, eur: 61_000))],
+            [.success(Price(date: today, eur: 62_000))]
+        ])
+        let viewModel = BitcoinListViewModel(
+            getBitcoinHistoryUseCase: historyUseCase,
+            observeBitcoinCurrentPriceUseCase: observeCurrentPriceUseCase,
+            presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
+            onSelect: { _ in }
+        )
+
+        viewModel.onAppear()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        viewModel.onDisappear()
+        viewModel.onAppear()
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(await historyUseCase.executeCallCount() == 1)
+        #expect(observeCurrentPriceUseCase.streamCallCount == 1)
+        #expect(viewModel.currentPriceText == "EUR 61000")
+    }
+
     @Test func retryRestartsCurrentPriceObservationWithFreshStream() async throws {
         let today = Calendar.utc.startOfDay(for: Date())
         let observeCurrentPriceUseCase = MockObserveBitcoinCurrentPriceUseCase(resultsByStream: [
@@ -170,5 +197,35 @@ struct BitcoinListViewModelTests {
 
         #expect(routedItem == selected)
         #expect(routedItem?.date == selectedDate)
+    }
+}
+
+private struct CountingHistoryUseCase: GetBitcoinHistoryUseCase {
+    private actor State {
+        var executeCallCount = 0
+
+        func increment() {
+            executeCallCount += 1
+        }
+
+        func count() -> Int {
+            executeCallCount
+        }
+    }
+
+    private let result: Result<[HistoryPrice], Error>
+    private let state = State()
+
+    init(result: Result<[HistoryPrice], Error>) {
+        self.result = result
+    }
+
+    func execute(daysIncludingToday: Int) async throws -> [HistoryPrice] {
+        await state.increment()
+        return try result.get()
+    }
+
+    func executeCallCount() async -> Int {
+        await state.count()
     }
 }

@@ -30,9 +30,6 @@ struct BitcoinListView: View {
         .task {
             viewModel.onAppear()
         }
-        .onDisappear {
-            viewModel.onDisappear()
-        }
     }
 
     @ViewBuilder

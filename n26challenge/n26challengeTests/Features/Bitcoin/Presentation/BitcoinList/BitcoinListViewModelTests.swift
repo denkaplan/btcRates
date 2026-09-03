@@ -156,18 +156,19 @@ struct BitcoinListViewModelTests {
             subtitle: nil,
             priceText: "EUR 60000"
         )
-        var routedDate: Date?
+        var routedItem: BitcoinHistoryRowPresentationalModel?
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
             lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
-            onSelect: { routedDate = $0 }
+            onSelect: { routedItem = $0 }
         )
 
         viewModel.select(selected)
 
-        #expect(routedDate == selectedDate)
+        #expect(routedItem == selected)
+        #expect(routedItem?.date == selectedDate)
     }
 }

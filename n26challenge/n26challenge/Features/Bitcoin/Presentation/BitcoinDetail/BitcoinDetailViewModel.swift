@@ -3,30 +3,30 @@ import Foundation
 
 @MainActor
 final class BitcoinDetailViewModel: ObservableObject {
-    @Published private(set) var state: State = .loading
+    @Published private(set) var state: State
 
     enum State: Equatable {
-        case loading
-        case loaded(BitcoinDetailPresentationalModel)
-        case failed(ErrorPresentationalModel)
+        case loading(BitcoinDetailPresentationalModel)
+        case loaded(BitcoinDetailPresentationalModel, message: ErrorPresentationalModel?)
     }
 
-    let date: Date
+    private let initialHistoryRow: BitcoinHistoryRowPresentationalModel
     private let getDetailPriceUseCase: GetBitcoinDetailPriceUseCase
     private let presentationalModelConverter: BitcoinDetailPresentationalModelConverter
     private let errorPresentationalModelConverter: ErrorPresentationalModelConverter
     private var loadTask: Task<Void, Never>?
 
     init(
-        date: Date,
+        initialHistoryRow: BitcoinHistoryRowPresentationalModel,
         getDetailPriceUseCase: GetBitcoinDetailPriceUseCase,
         presentationalModelConverter: BitcoinDetailPresentationalModelConverter,
         errorPresentationalModelConverter: ErrorPresentationalModelConverter
     ) {
-        self.date = date
+        self.initialHistoryRow = initialHistoryRow
         self.getDetailPriceUseCase = getDetailPriceUseCase
         self.presentationalModelConverter = presentationalModelConverter
         self.errorPresentationalModelConverter = errorPresentationalModelConverter
+        self.state = .loading(presentationalModelConverter.convert(historyRow: initialHistoryRow))
     }
 
     deinit {
@@ -43,16 +43,17 @@ final class BitcoinDetailViewModel: ObservableObject {
 
     private func load() {
         loadTask?.cancel()
-        state = .loading
+        let fallbackModel = presentationalModelConverter.convert(historyRow: initialHistoryRow)
+        state = .loading(fallbackModel)
         loadTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let price = try await getDetailPriceUseCase.execute(date: date)
+                let price = try await getDetailPriceUseCase.execute(date: initialHistoryRow.date)
                 guard !Task.isCancelled else { return }
-                state = .loaded(presentationalModelConverter.convert(price: price))
+                state = .loaded(presentationalModelConverter.convert(price: price), message: nil)
             } catch {
                 guard !Task.isCancelled else { return }
-                state = .failed(errorPresentationalModelConverter.convert(error))
+                state = .loaded(fallbackModel, message: errorPresentationalModelConverter.convert(error))
             }
         }
     }

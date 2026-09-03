@@ -12,19 +12,19 @@ final class BitcoinListCoordinator: Coordinator {
     }
 
     override func start() {
-        let assembly = BitcoinListAssembly(dependencies: dependencies) { [weak self] date in
-            self?.showDetails(for: date)
+        let assembly = BitcoinListAssembly(dependencies: dependencies) { [weak self] item in
+            self?.showDetails(for: item)
         }
         let module = assembly.assemble()
         navigationController.setViewControllers([module.view], animated: false)
         navigationController.setNavigationBarHidden(true, animated: false)
     }
 
-    private func showDetails(for date: Date) {
+    private func showDetails(for item: BitcoinHistoryRowPresentationalModel) {
         let detailCoordinator = BitcoinDetailCoordinator(
             navigationController: navigationController,
             dependencies: dependencies,
-            date: date,
+            initialHistoryRow: item,
             onFinish: { [weak self] coordinator in
                 self?.free(coordinator)
             }

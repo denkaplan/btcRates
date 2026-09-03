@@ -18,7 +18,7 @@ final class BitcoinListViewModel: ObservableObject {
     private let presentationalModelConverter: BitcoinListPresentationalModelConverter
     private let errorPresentationalModelConverter: ErrorPresentationalModelConverter
     private let lastUpdatedTextFormatter: LastUpdatedTextFormatter
-    private let onSelect: (Date) -> Void
+    private let onSelect: (BitcoinHistoryRowPresentationalModel) -> Void
     private var currentPriceObservationTask: Task<Void, Never>?
     private var historyTask: Task<Void, Never>?
 
@@ -28,7 +28,7 @@ final class BitcoinListViewModel: ObservableObject {
         presentationalModelConverter: BitcoinListPresentationalModelConverter,
         errorPresentationalModelConverter: ErrorPresentationalModelConverter,
         lastUpdatedTextFormatter: LastUpdatedTextFormatter,
-        onSelect: @escaping (Date) -> Void
+        onSelect: @escaping (BitcoinHistoryRowPresentationalModel) -> Void
     ) {
         self.getBitcoinHistoryUseCase = getBitcoinHistoryUseCase
         self.observeBitcoinCurrentPriceUseCase = observeBitcoinCurrentPriceUseCase
@@ -61,7 +61,7 @@ final class BitcoinListViewModel: ObservableObject {
     }
 
     func select(_ item: BitcoinHistoryRowPresentationalModel) {
-        onSelect(item.date)
+        onSelect(item)
     }
 
     private func loadHistory() {

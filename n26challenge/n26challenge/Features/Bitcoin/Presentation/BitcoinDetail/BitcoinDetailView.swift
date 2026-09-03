@@ -6,15 +6,10 @@ struct BitcoinDetailView: View {
     var body: some View {
         Group {
             switch viewModel.state {
-            case .loading:
-                ProgressView("Loading price…")
-            case .failed(let error):
-                ErrorStateView(
-                    model: error,
-                    retry: viewModel.retry
-                )
-            case .loaded(let model):
-                loaded(model)
+            case .loading(let model):
+                loaded(model, message: nil, showsLoading: true)
+            case .loaded(let model, let message):
+                loaded(model, message: message, showsLoading: false)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -24,7 +19,11 @@ struct BitcoinDetailView: View {
         }
     }
 
-    private func loaded(_ model: BitcoinDetailPresentationalModel) -> some View {
+    private func loaded(
+        _ model: BitcoinDetailPresentationalModel,
+        message: ErrorPresentationalModel?,
+        showsLoading: Bool
+    ) -> some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
@@ -33,6 +32,10 @@ struct BitcoinDetailView: View {
                         .foregroundStyle(.secondary)
                     Text(model.title)
                         .font(.largeTitle.bold())
+                    if showsLoading {
+                        ProgressView("Refreshing latest prices…")
+                            .padding(.top, 8)
+                    }
                 }
                 .padding(.vertical, 8)
             }
@@ -42,13 +45,26 @@ struct BitcoinDetailView: View {
                     BitcoinCurrencyRowView(row: row)
                 }
             }
+
+            if let message {
+                Section {
+                    InlineErrorView(model: message, retry: viewModel.retry)
+                }
+            }
         }
     }
 }
+
 #Preview {
     BitcoinDetailView(
         viewModel: BitcoinDetailViewModel(
-            date: Date(),
+            initialHistoryRow: BitcoinHistoryRowPresentationalModel(
+                id: "preview",
+                date: Date(),
+                title: DateFormatter.displayDay.string(from: Date()),
+                subtitle: nil,
+                priceText: "€58,000.00"
+            ),
             getDetailPriceUseCase: PreviewBitcoinDetailUseCase(),
             presentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl(),
             errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl()

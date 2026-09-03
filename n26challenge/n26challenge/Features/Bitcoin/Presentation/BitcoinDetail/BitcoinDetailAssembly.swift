@@ -10,30 +10,30 @@ import SwiftUI
 
 struct BitcoinDetailAssembly: ModuleAssembly {
     typealias ViewModelType = BitcoinDetailViewModel
-    
-    private let date: Date
+
+    private let initialHistoryRow: BitcoinHistoryRowPresentationalModel
     private let dependencies: AppDependencyContainer
-    
+
     init(
         dependencies: AppDependencyContainer,
-        date: Date
+        initialHistoryRow: BitcoinHistoryRowPresentationalModel
     ) {
-        self.date = date
+        self.initialHistoryRow = initialHistoryRow
         self.dependencies = dependencies
     }
-    
+
     @MainActor
     func assemble() -> Module<BitcoinDetailViewModel> {
         let viewModel = BitcoinDetailViewModel(
-            date: date,
+            initialHistoryRow: initialHistoryRow,
             getDetailPriceUseCase: dependencies.getBitcoinDetailPriceUseCase,
             presentationalModelConverter: dependencies.bitcoinDetailPresentationalModelConverter,
             errorPresentationalModelConverter: dependencies.errorPresentationalModelConverter
         )
         let viewController = UIHostingController(rootView: BitcoinDetailView(viewModel: viewModel))
-        viewController.title = DateFormatter.displayDay.string(from: date)
+        viewController.title = initialHistoryRow.title
         viewController.navigationItem.largeTitleDisplayMode = .never
-        
+
         return Module(view: viewController, viewModel: viewModel)
     }
 }

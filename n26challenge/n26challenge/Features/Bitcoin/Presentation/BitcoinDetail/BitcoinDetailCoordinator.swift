@@ -4,7 +4,7 @@ import UIKit
 final class BitcoinDetailCoordinator: Coordinator {
     private let navigationController: UINavigationController
     private let dependencies: AppDependencyContainer
-    private let date: Date
+    private let initialHistoryRow: BitcoinHistoryRowPresentationalModel
     private let onFinish: (BitcoinDetailCoordinator) -> Void
     private weak var viewController: UIViewController?
     private weak var previousNavigationDelegate: UINavigationControllerDelegate?
@@ -12,18 +12,18 @@ final class BitcoinDetailCoordinator: Coordinator {
     init(
         navigationController: UINavigationController,
         dependencies: AppDependencyContainer,
-        date: Date,
+        initialHistoryRow: BitcoinHistoryRowPresentationalModel,
         onFinish: @escaping (BitcoinDetailCoordinator) -> Void
     ) {
         self.navigationController = navigationController
         self.dependencies = dependencies
-        self.date = date
+        self.initialHistoryRow = initialHistoryRow
         self.onFinish = onFinish
         super.init()
     }
 
     override func start() {
-        let assembly = BitcoinDetailAssembly(dependencies: dependencies, date: date)
+        let assembly = BitcoinDetailAssembly(dependencies: dependencies, initialHistoryRow: initialHistoryRow)
         let module = assembly.assemble()
 
         self.viewController = module.view
@@ -53,7 +53,7 @@ extension BitcoinDetailCoordinator: UINavigationControllerDelegate {
         guard !navigationController.viewControllers.contains(coordinatedViewController) else { return }
         finish()
     }
-    
+
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         guard viewController != self.viewController else {
             return

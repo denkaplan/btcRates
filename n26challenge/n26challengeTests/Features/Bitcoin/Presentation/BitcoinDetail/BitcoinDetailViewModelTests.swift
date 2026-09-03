@@ -4,17 +4,28 @@ import Testing
 
 @MainActor
 struct BitcoinDetailViewModelTests {
-    @Test func onAppearLoadsPresentationModel() async throws {
-        let date = Date()
-        let price = Price(date: date, eur: 60_000, usd: 65_000, gbp: 51_000)
-        let expected = BitcoinDetailPresentationalModel(
-            title: "Converted title",
-            dateText: "Converted date",
-            currencyRows: [BitcoinCurrencyPresentationalModel(currency: .eur, valueText: "EUR 60000")]
-        )
+    @Test func initShowsFallbackHistoryPriceWhileLoading() {
+        let initialRow = makeInitialRow()
         let viewModel = BitcoinDetailViewModel(
-            date: date,
-            getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(price)),
+            initialHistoryRow: initialRow,
+            getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(Price(date: initialRow.date, eur: 60_000))),
+            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: makeFullModel()),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
+        )
+
+        #expect(viewModel.state == .loading(BitcoinDetailPresentationalModel(
+            title: "Fallback title",
+            dateText: initialRow.title,
+            currencyRows: [BitcoinCurrencyPresentationalModel(currency: .eur, valueText: initialRow.priceText)]
+        )))
+    }
+
+    @Test func onAppearLoadsFullPresentationModel() async throws {
+        let initialRow = makeInitialRow()
+        let expected = makeFullModel()
+        let viewModel = BitcoinDetailViewModel(
+            initialHistoryRow: initialRow,
+            getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(Price(date: initialRow.date, eur: 60_000, usd: 65_000, gbp: 51_000))),
             presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected),
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
@@ -22,35 +33,35 @@ struct BitcoinDetailViewModelTests {
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.state == .loaded(expected))
+        #expect(viewModel.state == .loaded(expected, message: nil))
     }
 
-    @Test func onAppearFailureShowsFailureState() async throws {
+    @Test func onAppearFailureKeepsFallbackDataAndShowsInlineError() async throws {
+        let initialRow = makeInitialRow()
+        let errorConverter = MockErrorPresentationalModelConverter()
         let viewModel = BitcoinDetailViewModel(
-            date: Date(),
+            initialHistoryRow: initialRow,
             getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .failure(NetworkError.timeout)),
-            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(
-                result: BitcoinDetailPresentationalModel(title: "", dateText: "", currencyRows: [])
-            ),
-            errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
+            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: makeFullModel()),
+            errorPresentationalModelConverter: errorConverter
         )
 
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        guard case .failed(let error) = viewModel.state else {
-            Issue.record("Expected failed state")
-            return
-        }
-        #expect(error == MockErrorPresentationalModelConverter().result)
+        #expect(viewModel.state == .loaded(BitcoinDetailPresentationalModel(
+            title: "Fallback title",
+            dateText: initialRow.title,
+            currencyRows: [BitcoinCurrencyPresentationalModel(currency: .eur, valueText: initialRow.priceText)]
+        ), message: errorConverter.result))
     }
 
-    @Test func retryLoadsAgain() async throws {
-        let date = Date()
-        let expected = BitcoinDetailPresentationalModel(title: "Title", dateText: "Today", currencyRows: [])
+    @Test func retryReloadsFullDataAfterFallback() async throws {
+        let initialRow = makeInitialRow()
+        let expected = makeFullModel()
         let viewModel = BitcoinDetailViewModel(
-            date: date,
-            getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(Price(date: date, eur: 60_000))),
+            initialHistoryRow: initialRow,
+            getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(Price(date: initialRow.date, eur: 60_000))),
             presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected),
             errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
@@ -58,6 +69,24 @@ struct BitcoinDetailViewModelTests {
         viewModel.retry()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        #expect(viewModel.state == .loaded(expected))
+        #expect(viewModel.state == .loaded(expected, message: nil))
     }
+}
+
+private func makeInitialRow() -> BitcoinHistoryRowPresentationalModel {
+    BitcoinHistoryRowPresentationalModel(
+        id: "today",
+        date: Date(),
+        title: "Today",
+        subtitle: nil,
+        priceText: "EUR 60000"
+    )
+}
+
+private func makeFullModel() -> BitcoinDetailPresentationalModel {
+    BitcoinDetailPresentationalModel(
+        title: "Converted title",
+        dateText: "Converted date",
+        currencyRows: [BitcoinCurrencyPresentationalModel(currency: .eur, valueText: "EUR 60000")]
+    )
 }

@@ -43,6 +43,14 @@ struct MockBitcoinDetailPresentationalModelConverter: BitcoinDetailPresentationa
     func convert(price: Price) -> BitcoinDetailPresentationalModel {
         result
     }
+
+    func convert(historyRow: BitcoinHistoryRowPresentationalModel) -> BitcoinDetailPresentationalModel {
+        BitcoinDetailPresentationalModel(
+            title: "Fallback title",
+            dateText: historyRow.title,
+            currencyRows: [BitcoinCurrencyPresentationalModel(currency: .eur, valueText: historyRow.priceText)]
+        )
+    }
 }
 
 struct MockLastUpdatedTextFormatter: LastUpdatedTextFormatter {

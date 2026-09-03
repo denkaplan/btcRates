@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 protocol BitcoinDetailPresentationalModelConverter {
     func convert(price: Price) -> BitcoinDetailPresentationalModel
+    func convert(historyRow: BitcoinHistoryRowPresentationalModel) -> BitcoinDetailPresentationalModel
 }
 
 @MainActor
@@ -15,6 +16,19 @@ struct BitcoinDetailPresentationalModelConverterImpl: BitcoinDetailPresentationa
                 BitcoinCurrencyPresentationalModel(
                     currency: currency,
                     valueText: format(value: price.value(for: currency), currency: currency)
+                )
+            }
+        )
+    }
+
+    func convert(historyRow: BitcoinHistoryRowPresentationalModel) -> BitcoinDetailPresentationalModel {
+        BitcoinDetailPresentationalModel(
+            title: "Bitcoin exchange rate",
+            dateText: historyRow.title,
+            currencyRows: Currency.allCases.map { currency in
+                BitcoinCurrencyPresentationalModel(
+                    currency: currency,
+                    valueText: currency == .eur ? historyRow.priceText : "—"
                 )
             }
         )

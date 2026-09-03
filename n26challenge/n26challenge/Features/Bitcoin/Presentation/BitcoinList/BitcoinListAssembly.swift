@@ -10,10 +10,10 @@ import UIKit
 
 struct BitcoinListAssembly: ModuleAssembly {
     typealias ViewModelType = BitcoinListViewModel
-    
+
     let dependencies: AppDependencyContainer
-    let onSelect: (Date) -> (Void)
-    
+    let onSelect: (BitcoinHistoryRowPresentationalModel) -> Void
+
     func assemble() -> Module<BitcoinListViewModel> {
         let viewModel = BitcoinListViewModel(
             getBitcoinHistoryUseCase: dependencies.getBitcoinHistoryUseCase,
@@ -21,8 +21,8 @@ struct BitcoinListAssembly: ModuleAssembly {
             presentationalModelConverter: dependencies.bitcoinListPresentationalModelConverter,
             errorPresentationalModelConverter: dependencies.errorPresentationalModelConverter,
             lastUpdatedTextFormatter: dependencies.lastUpdatedTextFormatter,
-            onSelect: { date in
-                self.onSelect(date)
+            onSelect: { item in
+                self.onSelect(item)
             }
         )
         let viewController = UIHostingController(rootView: BitcoinListView(viewModel: viewModel))

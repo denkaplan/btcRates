@@ -44,3 +44,40 @@ struct MockBitcoinDetailPresentationalModelConverter: BitcoinDetailPresentationa
         result
     }
 }
+
+struct MockLastUpdatedTextFormatter: LastUpdatedTextFormatter {
+    let result: String
+
+    init(result: String = "Updated test time") {
+        self.result = result
+    }
+
+    func string(from date: Date) -> String {
+        result
+    }
+}
+
+struct MockErrorPresentationalModelConverter: ErrorPresentationalModelConverter {
+    let result: ErrorPresentationalModel
+    let livePriceRefreshResult: ErrorPresentationalModel
+
+    init(
+        result: ErrorPresentationalModel = .init(title: "Converted error", message: "Converted message", systemImage: "converted"),
+        livePriceRefreshResult: ErrorPresentationalModel = .init(title: "Live converted", message: "Could not refresh live price. Pull to retry.", systemImage: "live")
+    ) {
+        self.result = result
+        self.livePriceRefreshResult = livePriceRefreshResult
+    }
+
+    func convert(_ error: Error) -> ErrorPresentationalModel {
+        result
+    }
+
+    func livePriceRefreshError() -> ErrorPresentationalModel {
+        livePriceRefreshResult
+    }
+
+    func historyPriceError() -> ErrorPresentationalModel {
+        result
+    }
+}

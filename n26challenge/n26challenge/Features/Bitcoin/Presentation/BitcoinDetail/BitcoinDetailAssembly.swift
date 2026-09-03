@@ -27,7 +27,8 @@ struct BitcoinDetailAssembly: ModuleAssembly {
         let viewModel = BitcoinDetailViewModel(
             date: date,
             getDetailPriceUseCase: dependencies.getBitcoinDetailPriceUseCase,
-            presentationalModelConverter: dependencies.bitcoinDetailPresentationalModelConverter
+            presentationalModelConverter: dependencies.bitcoinDetailPresentationalModelConverter,
+            errorPresentationalModelConverter: dependencies.errorPresentationalModelConverter
         )
         let viewController = UIHostingController(rootView: BitcoinDetailView(viewModel: viewModel))
         viewController.title = DateFormatter.displayDay.string(from: date)

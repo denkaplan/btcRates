@@ -19,6 +19,8 @@ struct BitcoinListAssembly: ModuleAssembly {
             getBitcoinHistoryUseCase: dependencies.getBitcoinHistoryUseCase,
             observeBitcoinCurrentPriceUseCase: dependencies.observeBitcoinCurrentPriceUseCase,
             presentationalModelConverter: dependencies.bitcoinListPresentationalModelConverter,
+            errorPresentationalModelConverter: dependencies.errorPresentationalModelConverter,
+            lastUpdatedTextFormatter: dependencies.lastUpdatedTextFormatter,
             onSelect: { date in
                 self.onSelect(date)
             }

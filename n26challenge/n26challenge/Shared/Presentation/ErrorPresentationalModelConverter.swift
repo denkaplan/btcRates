@@ -3,6 +3,7 @@ import Foundation
 protocol ErrorPresentationalModelConverter: Sendable {
     func convert(_ error: Error) -> ErrorPresentationalModel
     func livePriceRefreshError() -> ErrorPresentationalModel
+    func historyPriceError() -> ErrorPresentationalModel
 }
 
 struct ErrorPresentationalModelConverterImpl: ErrorPresentationalModelConverter {
@@ -22,10 +23,10 @@ struct ErrorPresentationalModelConverterImpl: ErrorPresentationalModelConverter 
                 message: "We couldn’t request the Bitcoin price correctly. Please try again later.",
                 systemImage: "exclamationmark.triangle"
             )
-        case .http(428):
+        case .http(429):
             return ErrorPresentationalModel(
-                title: "Update required",
-                message: "The price service needs an updated request before it can continue. Please try again later.",
+                title: "Price service rate limit",
+                message: "Too many requests. Pull to refresh later",
                 systemImage: "arrow.clockwise.circle"
             )
         case .http(500):
@@ -71,6 +72,14 @@ struct ErrorPresentationalModelConverterImpl: ErrorPresentationalModelConverter 
         ErrorPresentationalModel(
             title: "Live price not updated",
             message: "Could not refresh live price. Pull to retry.",
+            systemImage: "arrow.clockwise"
+        )
+    }
+    
+    func historyPriceError() -> ErrorPresentationalModel {
+        ErrorPresentationalModel(
+            title: "History price not updated",
+            message: "Pull to retry.",
             systemImage: "arrow.clockwise"
         )
     }

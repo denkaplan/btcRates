@@ -41,17 +41,15 @@ struct BitcoinListView: View {
         case .loading:
             ProgressView("Loading prices…")
                 .frame(maxWidth: .infinity, minHeight: 240)
-        case .failed(let message):
+        case .failed(let error):
             ErrorStateView(
-                title: "Unable to load Bitcoin prices",
-                systemImage: "wifi.exclamationmark",
-                message: message,
+                model: error,
                 retry: viewModel.retry
             )
             .frame(minHeight: 360)
         case .loaded(let rows, let message):
             if let message {
-                Text(message)
+                Text(message.message)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,6 +80,8 @@ struct BitcoinListView: View {
             getBitcoinHistoryUseCase: PreviewBitcoinHistoryUseCase(),
             observeBitcoinCurrentPriceUseCase: PreviewObserveBitcoinCurrentPriceUseCase(),
             presentationalModelConverter: BitcoinListPresentationalModelConverterImpl(),
+            errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl(),
+            lastUpdatedTextFormatter: LastUpdatedTextFormatterImpl(),
             onSelect: { _ in }
         )
     )

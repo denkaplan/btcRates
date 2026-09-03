@@ -15,7 +15,8 @@ struct BitcoinDetailViewModelTests {
         let viewModel = BitcoinDetailViewModel(
             date: date,
             getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(price)),
-            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected)
+            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
         viewModel.onAppear()
@@ -30,17 +31,18 @@ struct BitcoinDetailViewModelTests {
             getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .failure(NetworkError.timeout)),
             presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(
                 result: BitcoinDetailPresentationalModel(title: "", dateText: "", currencyRows: [])
-            )
+            ),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
         viewModel.onAppear()
         try await Task.sleep(nanoseconds: 100_000_000)
 
-        guard case .failed(let message) = viewModel.state else {
+        guard case .failed(let error) = viewModel.state else {
             Issue.record("Expected failed state")
             return
         }
-        #expect(message.isEmpty == false)
+        #expect(error == MockErrorPresentationalModelConverter().result)
     }
 
     @Test func retryLoadsAgain() async throws {
@@ -49,7 +51,8 @@ struct BitcoinDetailViewModelTests {
         let viewModel = BitcoinDetailViewModel(
             date: date,
             getDetailPriceUseCase: MockGetBitcoinDetailPriceUseCase(result: .success(Price(date: date, eur: 60_000))),
-            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected)
+            presentationalModelConverter: MockBitcoinDetailPresentationalModelConverter(result: expected),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter()
         )
 
         viewModel.retry()

@@ -8,11 +8,9 @@ struct BitcoinDetailView: View {
             switch viewModel.state {
             case .loading:
                 ProgressView("Loading price…")
-            case .failed(let message):
+            case .failed(let error):
                 ErrorStateView(
-                    title: "Unable to load price",
-                    systemImage: "exclamationmark.triangle",
-                    message: message,
+                    model: error,
                     retry: viewModel.retry
                 )
             case .loaded(let model):
@@ -52,7 +50,8 @@ struct BitcoinDetailView: View {
         viewModel: BitcoinDetailViewModel(
             date: Date(),
             getDetailPriceUseCase: PreviewBitcoinDetailUseCase(),
-            presentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl()
+            presentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl(),
+            errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl()
         )
     )
 }

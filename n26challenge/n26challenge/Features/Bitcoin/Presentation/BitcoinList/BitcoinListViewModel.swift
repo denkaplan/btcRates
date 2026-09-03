@@ -17,6 +17,7 @@ final class BitcoinListViewModel: ObservableObject {
     private let observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase
     private let presentationalModelConverter: BitcoinListPresentationalModelConverter
     private let errorPresentationalModelConverter: ErrorPresentationalModelConverter
+    private let lastUpdatedTextFormatter: LastUpdatedTextFormatter
     private let onSelect: (Date) -> Void
     private var currentPriceObservationTask: Task<Void, Never>?
     private var historyTask: Task<Void, Never>?
@@ -26,12 +27,14 @@ final class BitcoinListViewModel: ObservableObject {
         observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase,
         presentationalModelConverter: BitcoinListPresentationalModelConverter,
         errorPresentationalModelConverter: ErrorPresentationalModelConverter,
+        lastUpdatedTextFormatter: LastUpdatedTextFormatter,
         onSelect: @escaping (Date) -> Void
     ) {
         self.getBitcoinHistoryUseCase = getBitcoinHistoryUseCase
         self.observeBitcoinCurrentPriceUseCase = observeBitcoinCurrentPriceUseCase
         self.presentationalModelConverter = presentationalModelConverter
         self.errorPresentationalModelConverter = errorPresentationalModelConverter
+        self.lastUpdatedTextFormatter = lastUpdatedTextFormatter
         self.onSelect = onSelect
     }
 
@@ -110,7 +113,13 @@ final class BitcoinListViewModel: ObservableObject {
         }
         rows.sort { $0.date > $1.date }
         currentPriceText = row.priceText
-        contentState = .loaded(rows: rows, message: nil)
+        let error: ErrorPresentationalModel? = {
+            if rows.count > 1 {
+                return nil
+            }
+            return errorPresentationalModelConverter.historyPriceError()
+        }()
+        contentState = .loaded(rows: rows, message: error)
     }
 
     private var contentRows: [BitcoinHistoryRowPresentationalModel] {
@@ -119,9 +128,6 @@ final class BitcoinListViewModel: ObservableObject {
     }
 
     private func markUpdated() {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .none
-        lastUpdatedText = "Updated " + formatter.string(from: Date())
+        lastUpdatedText = lastUpdatedTextFormatter.string(from: Date())
     }
 }

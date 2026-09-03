@@ -12,6 +12,15 @@ struct FormatterExtensionsTests {
         #expect(Decimal(42).asNumber.decimalValue == Decimal(42))
     }
 
+    @Test func lastUpdatedTextFormatterUsesPooledFormatter() {
+        let formatter = LastUpdatedTextFormatterImpl()
+
+        let text = formatter.string(from: requiredAPIDate("03-09-2026"))
+
+        #expect(text.hasPrefix("Updated "))
+        #expect(text.count > "Updated ".count)
+    }
+
     @Test func currencyFormatterUsesTypedCurrencyCode() {
         #expect(NumberFormatter.currency(.eur).currencyCode == Currency.eur.code)
         #expect(NumberFormatter.currency(.usd).currencyCode == Currency.usd.code)

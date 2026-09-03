@@ -20,6 +20,14 @@ extension DateFormatter {
         return formatter
     }()
 
+    @MainActor
+    static let lastUpdatedTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
+
     static func apiDayString(from date: Date) -> String {
         let formatter = DateFormatter()
         formatter.calendar = .utc

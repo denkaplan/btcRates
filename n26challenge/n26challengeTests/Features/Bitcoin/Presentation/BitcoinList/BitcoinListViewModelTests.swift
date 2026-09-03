@@ -17,6 +17,8 @@ struct BitcoinListViewModelTests {
                 .success(Price(date: today, eur: 61_000, usd: 66_000, gbp: 52_000))
             ]),
             presentationalModelConverter: converter,
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { _ in }
         )
 
@@ -31,7 +33,7 @@ struct BitcoinListViewModelTests {
         #expect(rows.first?.priceText == "EUR 61000")
         #expect(message == nil)
         #expect(viewModel.currentPriceText == "EUR 61000")
-        #expect(viewModel.lastUpdatedText != nil)
+        #expect(viewModel.lastUpdatedText == "Updated test time")
         #expect(converter.convertedHistory == history)
         #expect(converter.convertedCurrentPrices.map(\.eur) == [61_000])
     }
@@ -42,6 +44,8 @@ struct BitcoinListViewModelTests {
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success(refreshed)),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { _ in }
         )
 
@@ -62,6 +66,8 @@ struct BitcoinListViewModelTests {
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .failure(NetworkError.unknown)),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { _ in }
         )
 
@@ -72,7 +78,7 @@ struct BitcoinListViewModelTests {
             Issue.record("Expected failed state")
             return
         }
-        #expect(message.isEmpty == false)
+        #expect(message == MockErrorPresentationalModelConverter().result)
     }
 
     @Test func currentPriceFailureUsesFailedStateWhenRowsAreEmpty() async throws {
@@ -80,6 +86,8 @@ struct BitcoinListViewModelTests {
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { _ in }
         )
 
@@ -90,7 +98,7 @@ struct BitcoinListViewModelTests {
             Issue.record("Expected failed state")
             return
         }
-        #expect(message.isEmpty == false)
+        #expect(message == MockErrorPresentationalModelConverter().result)
     }
 
     @Test func currentPriceFailureUsesInlineRefreshMessageWhenRowsAlreadyExist() async throws {
@@ -98,6 +106,8 @@ struct BitcoinListViewModelTests {
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([HistoryPrice(date: Date(), eur: 60_000)])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: [.failure(NetworkError.timeout)]),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { _ in }
         )
 
@@ -108,7 +118,7 @@ struct BitcoinListViewModelTests {
             Issue.record("Expected loaded state")
             return
         }
-        #expect(message == "Could not refresh live price. Pull to retry.")
+        #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
     @Test func selectRoutesByDateFromPresentationRow() {
@@ -125,6 +135,8 @@ struct BitcoinListViewModelTests {
             getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([])),
             observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
             presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
             onSelect: { routedDate = $0 }
         )
 

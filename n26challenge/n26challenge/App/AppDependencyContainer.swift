@@ -6,6 +6,7 @@ struct AppDependencyContainer {
     let bitcoinListPresentationalModelConverter: BitcoinListPresentationalModelConverter
     let bitcoinDetailPresentationalModelConverter: BitcoinDetailPresentationalModelConverter
     let errorPresentationalModelConverter: ErrorPresentationalModelConverter
+    let lastUpdatedTextFormatter: LastUpdatedTextFormatter
 
     private static func makeJSONDecoder() -> JSONDecoder {
         let decoder = JSONDecoder()
@@ -37,7 +38,8 @@ struct AppDependencyContainer {
             getBitcoinDetailPriceUseCase: GetBitcoinDetailPriceUseCaseImpl(repository: repository),
             bitcoinListPresentationalModelConverter: BitcoinListPresentationalModelConverterImpl(),
             bitcoinDetailPresentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl(),
-            errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl()
+            errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl(),
+            lastUpdatedTextFormatter: LastUpdatedTextFormatterImpl()
         )
     }
 }

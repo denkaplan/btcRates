@@ -4,6 +4,17 @@ protocol ObserveBitcoinCurrentPriceUseCase: Sendable {
     func stream(interval: TimeInterval) -> AsyncStream<Result<Price, Error>>
 }
 
+enum BitcoinCurrentPriceObservationError: LocalizedError, Equatable, Sendable {
+    case invalidInterval
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidInterval:
+            return "The current-price refresh interval must be greater than zero."
+        }
+    }
+}
+
 struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase {
     private let repository: BitcoinRepository
 
@@ -13,12 +24,18 @@ struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase 
 
     func stream(interval: TimeInterval = 60) -> AsyncStream<Result<Price, Error>> {
         AsyncStream { continuation in
+            guard let refreshDelay = nanoseconds(from: interval) else {
+                continuation.yield(.failure(BitcoinCurrentPriceObservationError.invalidInterval))
+                continuation.finish()
+                return
+            }
+
             let task = Task {
                 while !Task.isCancelled {
                     await emitCurrentPrice(into: continuation)
 
                     do {
-                        try await Task.sleep(nanoseconds: nanoseconds(from: interval))
+                        try await Task.sleep(nanoseconds: refreshDelay)
                     } catch {
                         break
                     }
@@ -41,8 +58,8 @@ struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase 
         }
     }
 
-    private func nanoseconds(from interval: TimeInterval) -> UInt64 {
-        guard interval > 0 else { return 0 }
+    private func nanoseconds(from interval: TimeInterval) -> UInt64? {
+        guard interval.isFinite, interval > 0 else { return nil }
         let nanoseconds = interval * 1_000_000_000
         guard nanoseconds < TimeInterval(UInt64.max) else { return UInt64.max }
         return UInt64(nanoseconds)

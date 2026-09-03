@@ -3,13 +3,18 @@ import SwiftUI
 struct BitcoinListView: View {
     @ObservedObject var viewModel: BitcoinListViewModel
 
-    private let headerHeight: CGFloat = 180
-
     var body: some View {
-        ZStack(alignment: .top) {
+        VStack(alignment: .leading, spacing: 0) {
+            
+            LivePriceHeader(
+                priceText: viewModel.currentPriceText,
+                lastUpdatedText: viewModel.lastUpdatedText,
+                height: 180
+            )
+            
             ScrollView {
                 content
-                    .padding(.top, headerHeight + 16)
+                    .padding(.top, 16)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 24)
             }
@@ -18,14 +23,8 @@ struct BitcoinListView: View {
                 viewModel.retry()
             }
 
-            LivePriceHeader(
-                priceText: viewModel.currentPriceText,
-                lastUpdatedText: viewModel.lastUpdatedText,
-                height: headerHeight
-            )
-            .ignoresSafeArea(.all)
-            .zIndex(1)
         }
+        .ignoresSafeArea(.all, edges: .top)
         .background(Color(.systemGroupedBackground))
         .task {
             viewModel.onAppear()

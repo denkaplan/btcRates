@@ -94,20 +94,20 @@ private struct TestResponse: Decodable, Equatable, Sendable {
 }
 
 private func makeSession(handler: @escaping @Sendable (URLRequest) throws -> (Data, URLResponse?)) -> URLSession {
-    MockURLProtocol.requestHandler = handler
+    MockURLProtocol.requestHandlerStorage.set(handler)
     let configuration = URLSessionConfiguration.ephemeral
     configuration.protocolClasses = [MockURLProtocol.self]
     return URLSession(configuration: configuration)
 }
 
 private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
-    static var requestHandler: (@Sendable (URLRequest) throws -> (Data, URLResponse?))?
+    static let requestHandlerStorage = RequestHandlerStorage()
 
     override class func canInit(with request: URLRequest) -> Bool { true }
     override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
 
     override func startLoading() {
-        guard let requestHandler = Self.requestHandler else {
+        guard let requestHandler = Self.requestHandlerStorage.handler() else {
             client?.urlProtocol(self, didFailWithError: NetworkError.unknown)
             return
         }
@@ -125,4 +125,19 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
     }
 
     override func stopLoading() {}
+}
+
+private final class RequestHandlerStorage: @unchecked Sendable {
+    private let lock = NSLock()
+    private var storedHandler: (@Sendable (URLRequest) throws -> (Data, URLResponse?))?
+
+    func set(_ handler: @escaping @Sendable (URLRequest) throws -> (Data, URLResponse?)) {
+        lock.withLock {
+            storedHandler = handler
+        }
+    }
+
+    func handler() -> (@Sendable (URLRequest) throws -> (Data, URLResponse?))? {
+        lock.withLock { storedHandler }
+    }
 }

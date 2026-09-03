@@ -43,6 +43,25 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
             Issue.record("Expected NetworkError.unknown, got \(error)")
         }
     }
+
+    @Test func emitsInvalidIntervalFailureAndFinishesForZeroOrNegativeIntervals() async throws {
+        // Arrange
+        let useCase = ObserveBitcoinCurrentPriceUseCaseImpl(repository: MockBitcoinRepository.empty)
+
+        for interval in [0, -1, TimeInterval.nan] {
+            var iterator = useCase.stream(interval: interval).makeAsyncIterator()
+
+            // Act
+            let first = await iterator.next()
+            let second = await iterator.next()
+
+            // Assert
+            #expect(throws: BitcoinCurrentPriceObservationError.invalidInterval) {
+                _ = try first?.get()
+            }
+            #expect(second == nil)
+        }
+    }
 }
 
 private struct SequencedCurrentPriceRepository: BitcoinRepository {

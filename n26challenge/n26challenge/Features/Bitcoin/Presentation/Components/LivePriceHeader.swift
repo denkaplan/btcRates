@@ -39,5 +39,16 @@ struct LivePriceHeader: View {
         .background(ColorPalette.accentGradient)
         .clipShape(BottomRoundedRectangle(radius: 28))
         .shadow(color: ColorPalette.accent.opacity(0.18), radius: 18, x: 0, y: 10)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("BTC to EUR live Bitcoin price")
+        .accessibilityValue(accessibilityValue)
+        .accessibilityIdentifier("bitcoin-live-price-header")
+    }
+
+    private var accessibilityValue: String {
+        if let lastUpdatedText {
+            return "\(priceText), \(lastUpdatedText)"
+        }
+        return priceText
     }
 }

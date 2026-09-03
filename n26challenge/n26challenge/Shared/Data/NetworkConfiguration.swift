@@ -1,6 +1,6 @@
 import Foundation
 
-struct NetworkConfiguration {
+struct NetworkConfiguration: Sendable {
     let host: String
     let jsonDecoder: JSONDecoder
 

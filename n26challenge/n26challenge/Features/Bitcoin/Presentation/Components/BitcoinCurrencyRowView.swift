@@ -16,5 +16,9 @@ struct BitcoinCurrencyRowView: View {
                 .fontWeight(.semibold)
         }
         .padding(.vertical, 4)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(row.title), \(row.code)")
+        .accessibilityValue(row.valueText)
+        .accessibilityIdentifier("bitcoin-currency-row-\(row.code.lowercased())")
     }
 }

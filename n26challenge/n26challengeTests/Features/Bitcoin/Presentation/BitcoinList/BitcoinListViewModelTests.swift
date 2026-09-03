@@ -136,6 +136,7 @@ struct BitcoinListViewModelTests {
         #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
+
     @Test func retryRestartsCurrentPriceObservationWithFreshStream() async throws {
         // Arrange
         let today = Calendar.utc.startOfDay(for: Date())
@@ -193,6 +194,7 @@ struct BitcoinListViewModelTests {
         #expect(routedItem?.date == selectedDate)
     }
 }
+
 
 private struct CountingHistoryUseCase: GetBitcoinHistoryUseCase {
     private actor State {

@@ -34,5 +34,15 @@ struct BitcoinHistoryRowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Opens Bitcoin price details for this day")
+        .accessibilityIdentifier("bitcoin-history-row-\(item.id)")
+    }
+
+    private var accessibilityLabel: String {
+        [item.title, item.subtitle, item.priceText]
+            .compactMap { $0 }
+            .joined(separator: ", ")
     }
 }

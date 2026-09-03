@@ -156,18 +156,18 @@ private struct CollapsibleBitcoinHeader: View {
 }
 
 private struct HistoryRow: View {
-    let item: BitcoinHistoryItem
+    let item: BitcoinHistoryRowPresentationalModel
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(DateFormatter.displayDay.string(from: item.date))
+                    Text(item.title)
                         .font(.headline)
                         .foregroundStyle(.primary)
-                    if Calendar.current.isDateInToday(item.date) {
-                        Text("Live, refreshes every 60 seconds")
+                    if let subtitle = item.subtitle {
+                        Text(subtitle)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -175,7 +175,7 @@ private struct HistoryRow: View {
 
                 Spacer(minLength: 12)
 
-                Text(NumberFormatter.eurCurrency.string(from: item.eur.asNumber) ?? "€\(item.eur)")
+                Text(item.priceText)
                     .font(.body.monospacedDigit())
                     .foregroundStyle(.primary)
 
@@ -193,7 +193,7 @@ private struct HistoryRow: View {
 }
 
 private struct ScrollOffsetPreferenceKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
+    static let defaultValue: CGFloat = 0
 
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
@@ -203,39 +203,34 @@ private struct ScrollOffsetPreferenceKey: PreferenceKey {
 #Preview {
     BitcoinListView(
         viewModel: BitcoinListViewModel(
-            repository: PreviewBitcoinRepository(),
-            timerFactory: PreviewTimerFactory(),
+            getBitcoinHistoryUseCase: PreviewBitcoinHistoryUseCase(),
+            observeBitcoinCurrentPriceUseCase: PreviewObserveBitcoinCurrentPriceUseCase(),
+            presentationalModelConverter: BitcoinListPresentationalModelConverterImpl(),
             onSelect: { _ in }
         )
     )
 }
 
-private struct PreviewBitcoinRepository: BitcoinRepository {
-    func currentPrice() async throws -> BitcoinPrice {
-        BitcoinPrice(date: Date(), eur: 58_000, usd: 63_000, gbp: 49_000)
+private struct PreviewBitcoinHistoryUseCase: GetBitcoinHistoryUseCase {
+    func execute(daysIncludingToday: Int) async throws -> [HistoryPrice] {
+        makeHistory(daysIncludingToday: daysIncludingToday)
     }
+}
 
-    func historicalPrices(daysIncludingToday: Int) async throws -> [BitcoinHistoryItem] {
-        (0..<daysIncludingToday).map { offset in
-            BitcoinHistoryItem(
-                date: Calendar.utc.date(byAdding: .day, value: -offset, to: Calendar.utc.startOfDay(for: Date()))!,
-                eur: Decimal(58_000 - offset * 400)
-            )
+private struct PreviewObserveBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase {
+    func stream(interval: TimeInterval) -> AsyncStream<Result<Price, Error>> {
+        AsyncStream { continuation in
+            continuation.yield(.success(Price(date: Date(), eur: 58_500, usd: 63_000, gbp: 49_000)))
+            continuation.finish()
         }
     }
-
-    func details(for date: Date) async throws -> BitcoinPrice {
-        BitcoinPrice(date: date, eur: 58_000, usd: 63_000, gbp: 49_000)
-    }
 }
 
-private final class PreviewTimer: CancellableTimer {
-    func start() {}
-    func cancel() {}
-}
-
-private struct PreviewTimerFactory: TimerFactory {
-    func makeTimer(interval: TimeInterval, handler: @escaping () -> Void) -> CancellableTimer {
-        PreviewTimer()
+private func makeHistory(daysIncludingToday: Int) -> [HistoryPrice] {
+    (0..<daysIncludingToday).map { offset in
+        HistoryPrice(
+            date: Calendar.utc.requiredDate(byAdding: .day, value: -offset, to: Calendar.utc.startOfDay(for: Date())),
+            eur: Decimal(58_000 - offset * 400)
+        )
     }
 }

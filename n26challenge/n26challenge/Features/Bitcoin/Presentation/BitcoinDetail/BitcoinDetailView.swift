@@ -15,8 +15,8 @@ struct BitcoinDetailView: View {
                     message: message,
                     retry: viewModel.retry
                 )
-            case .loaded(let price):
-                loaded(price)
+            case .loaded(let model):
+                loaded(model)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -26,52 +26,44 @@ struct BitcoinDetailView: View {
         }
     }
 
-    private func loaded(_ price: BitcoinPrice) -> some View {
+    private func loaded(_ model: BitcoinDetailPresentationalModel) -> some View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(DateFormatter.displayDay.string(from: price.date))
+                    Text(model.dateText)
                         .font(.headline)
                         .foregroundStyle(.secondary)
-                    Text("Bitcoin exchange rate")
+                    Text(model.title)
                         .font(.largeTitle.bold())
                 }
                 .padding(.vertical, 8)
             }
 
             Section("Currencies") {
-                CurrencyRow(code: "EUR", title: "Euro", value: price.eur, formatter: .eurCurrency)
-                CurrencyRow(code: "USD", title: "US Dollar", value: price.usd, formatter: .usdCurrency)
-                CurrencyRow(code: "GBP", title: "British Pound", value: price.gbp, formatter: .gbpCurrency)
+                ForEach(model.currencyRows) { row in
+                    CurrencyRow(row: row)
+                }
             }
         }
     }
 }
 
 private struct CurrencyRow: View {
-    let code: String
-    let title: String
-    let value: Decimal?
-    let formatter: NumberFormatter
+    let row: BitcoinCurrencyPresentationalModel
 
     var body: some View {
         HStack(spacing: 12) {
-            Text(code)
+            Text(row.code)
                 .font(.headline.monospaced())
                 .frame(width: 48, alignment: .leading)
-            Text(title)
+            Text(row.title)
                 .foregroundStyle(.secondary)
             Spacer()
-            Text(formattedValue)
+            Text(row.valueText)
                 .font(.body.monospacedDigit())
                 .fontWeight(.semibold)
         }
         .padding(.vertical, 4)
-    }
-
-    private var formattedValue: String {
-        guard let value else { return "—" }
-        return formatter.string(from: value.asNumber) ?? "\(value)"
     }
 }
 
@@ -79,19 +71,14 @@ private struct CurrencyRow: View {
     BitcoinDetailView(
         viewModel: BitcoinDetailViewModel(
             date: Date(),
-            repository: PreviewDetailRepository()
+            getDetailPriceUseCase: PreviewBitcoinDetailUseCase(),
+            presentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl()
         )
     )
 }
 
-private struct PreviewDetailRepository: BitcoinRepository {
-    func currentPrice() async throws -> BitcoinPrice {
-        BitcoinPrice(date: Date(), eur: 58_000, usd: 63_000, gbp: 49_000)
-    }
-
-    func historicalPrices(daysIncludingToday: Int) async throws -> [BitcoinHistoryItem] { [] }
-
-    func details(for date: Date) async throws -> BitcoinPrice {
-        BitcoinPrice(date: date, eur: 58_000, usd: 63_000, gbp: 49_000)
+private struct PreviewBitcoinDetailUseCase: GetBitcoinDetailPriceUseCase {
+    func execute(date: Date) async throws -> Price {
+        Price(date: date, eur: 58_000, usd: 63_000, gbp: 49_000)
     }
 }

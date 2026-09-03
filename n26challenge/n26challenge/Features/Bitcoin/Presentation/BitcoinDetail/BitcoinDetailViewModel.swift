@@ -7,17 +7,23 @@ final class BitcoinDetailViewModel: ObservableObject {
 
     enum State: Equatable {
         case loading
-        case loaded(BitcoinPrice)
+        case loaded(BitcoinDetailPresentationalModel)
         case failed(String)
     }
 
     let date: Date
-    private let repository: BitcoinRepository
+    private let getDetailPriceUseCase: GetBitcoinDetailPriceUseCase
+    private let presentationalModelConverter: BitcoinDetailPresentationalModelConverter
     private var loadTask: Task<Void, Never>?
 
-    init(date: Date, repository: BitcoinRepository) {
+    init(
+        date: Date,
+        getDetailPriceUseCase: GetBitcoinDetailPriceUseCase,
+        presentationalModelConverter: BitcoinDetailPresentationalModelConverter
+    ) {
         self.date = date
-        self.repository = repository
+        self.getDetailPriceUseCase = getDetailPriceUseCase
+        self.presentationalModelConverter = presentationalModelConverter
     }
 
     deinit {
@@ -38,9 +44,9 @@ final class BitcoinDetailViewModel: ObservableObject {
         loadTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let price = try await repository.details(for: date)
+                let price = try await getDetailPriceUseCase.execute(date: date)
                 guard !Task.isCancelled else { return }
-                state = .loaded(price)
+                state = .loaded(presentationalModelConverter.convert(price: price))
             } catch {
                 guard !Task.isCancelled else { return }
                 state = .failed(error.localizedDescription)

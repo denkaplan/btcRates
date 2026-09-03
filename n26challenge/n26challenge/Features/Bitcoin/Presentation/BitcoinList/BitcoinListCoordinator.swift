@@ -2,23 +2,22 @@ import SwiftUI
 import UIKit
 
 final class BitcoinListCoordinator: Coordinator {
-    var childCoordinators: [Coordinator] = []
-
     private let navigationController: UINavigationController
     private let dependencies: AppDependencyContainer
 
     init(navigationController: UINavigationController, dependencies: AppDependencyContainer) {
         self.navigationController = navigationController
         self.dependencies = dependencies
+        super.init()
     }
 
-    func start() {
+    override func start() {
         let viewModel = BitcoinListViewModel(
-            getHistoryUseCase: dependencies.getBitcoinHistoryUseCase,
-            getCurrentPriceUseCase: dependencies.getBitcoinCurrentPriceUseCase,
-            timerFactory: dependencies.timerFactory,
-            onSelect: { [weak self] item in
-                self?.showDetails(for: item.date)
+            getBitcoinHistoryUseCase: dependencies.getBitcoinHistoryUseCase,
+            observeBitcoinCurrentPriceUseCase: dependencies.observeBitcoinCurrentPriceUseCase,
+            presentationalModelConverter: dependencies.bitcoinListPresentationalModelConverter,
+            onSelect: { [weak self] date in
+                self?.showDetails(for: date)
             }
         )
         let viewController = UIHostingController(rootView: BitcoinListView(viewModel: viewModel))

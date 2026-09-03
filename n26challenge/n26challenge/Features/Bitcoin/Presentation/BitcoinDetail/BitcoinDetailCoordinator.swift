@@ -2,8 +2,6 @@ import SwiftUI
 import UIKit
 
 final class BitcoinDetailCoordinator: Coordinator {
-    var childCoordinators: [Coordinator] = []
-
     private let navigationController: UINavigationController
     private let dependencies: AppDependencyContainer
     private let date: Date
@@ -21,12 +19,14 @@ final class BitcoinDetailCoordinator: Coordinator {
         self.dependencies = dependencies
         self.date = date
         self.onFinish = onFinish
+        super.init()
     }
 
-    func start() {
+    override func start() {
         let viewModel = BitcoinDetailViewModel(
             date: date,
-            getDetailPriceUseCase: dependencies.getBitcoinDetailPriceUseCase
+            getDetailPriceUseCase: dependencies.getBitcoinDetailPriceUseCase,
+            presentationalModelConverter: dependencies.bitcoinDetailPresentationalModelConverter
         )
         let viewController = UIHostingController(rootView: BitcoinDetailView(viewModel: viewModel))
         viewController.title = DateFormatter.displayDay.string(from: date)

@@ -4,117 +4,104 @@ import Foundation
 @MainActor
 final class BitcoinListViewModel: ObservableObject {
     @Published private(set) var currentPriceText = "—"
-    @Published private(set) var rows: [BitcoinHistoryItem] = []
+    @Published private(set) var rows: [BitcoinHistoryRowPresentationalModel] = []
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var lastUpdatedText: String?
 
-    private let repository: BitcoinRepository
-    private let timerFactory: TimerFactory
-    private let onSelect: (BitcoinHistoryItem) -> Void
-    private var pollingTimer: CancellableTimer?
-    private var refreshTask: Task<Void, Never>?
+    private let getBitcoinHistoryUseCase: GetBitcoinHistoryUseCase
+    private let observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase
+    private let presentationalModelConverter: BitcoinListPresentationalModelConverter
+    private let onSelect: (Date) -> Void
+    private var currentPriceObservationTask: Task<Void, Never>?
+    private var historyTask: Task<Void, Never>?
 
     init(
-        repository: BitcoinRepository,
-        timerFactory: TimerFactory,
-        onSelect: @escaping (BitcoinHistoryItem) -> Void
+        getBitcoinHistoryUseCase: GetBitcoinHistoryUseCase,
+        observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase,
+        presentationalModelConverter: BitcoinListPresentationalModelConverter,
+        onSelect: @escaping (Date) -> Void
     ) {
-        self.repository = repository
-        self.timerFactory = timerFactory
+        self.getBitcoinHistoryUseCase = getBitcoinHistoryUseCase
+        self.observeBitcoinCurrentPriceUseCase = observeBitcoinCurrentPriceUseCase
+        self.presentationalModelConverter = presentationalModelConverter
         self.onSelect = onSelect
     }
 
     deinit {
-        pollingTimer?.cancel()
-        refreshTask?.cancel()
+        currentPriceObservationTask?.cancel()
+        historyTask?.cancel()
     }
 
     func onAppear() {
-        guard pollingTimer == nil else { return }
+        guard currentPriceObservationTask == nil else { return }
         loadHistory()
-        startPolling()
+        observeCurrentPrice()
     }
 
     func onDisappear() {
-        pollingTimer?.cancel()
-        pollingTimer = nil
-        refreshTask?.cancel()
+        currentPriceObservationTask?.cancel()
+        currentPriceObservationTask = nil
+        historyTask?.cancel()
     }
 
     func retry() {
         loadHistory()
     }
 
-    func select(_ item: BitcoinHistoryItem) {
-        onSelect(item)
-    }
-
-    private func startPolling() {
-        let timer = timerFactory.makeTimer(interval: 60) { [weak self] in
-            Task { @MainActor in
-                self?.refreshCurrentPrice()
-            }
-        }
-        pollingTimer = timer
-        timer.start()
+    func select(_ item: BitcoinHistoryRowPresentationalModel) {
+        onSelect(item.date)
     }
 
     private func loadHistory() {
-        refreshTask?.cancel()
+        historyTask?.cancel()
         isLoading = rows.isEmpty
         errorMessage = nil
-        refreshTask = Task { [weak self] in
+        historyTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let items = try await repository.historicalPrices(daysIncludingToday: 14)
-                guard !Task.isCancelled else { return }
-                rows = items
-                updateCurrentPrice(from: items.first?.eur)
-                markUpdated()
-                isLoading = false
+                apply(presentationalModelConverter.convert(history: try await getBitcoinHistoryUseCase.execute(daysIncludingToday: 14)))
+                errorMessage = nil
             } catch {
-                guard !Task.isCancelled else { return }
                 errorMessage = error.localizedDescription
                 isLoading = false
             }
         }
     }
 
-    private func refreshCurrentPrice() {
-        refreshTask?.cancel()
-        refreshTask = Task { [weak self] in
+    private func observeCurrentPrice() {
+        currentPriceObservationTask = Task { [weak self] in
             guard let self else { return }
-            do {
-                let price = try await repository.currentPrice()
+            for await result in observeBitcoinCurrentPriceUseCase.stream(interval: 60) {
                 guard !Task.isCancelled else { return }
-                mergeCurrentPrice(price)
-                updateCurrentPrice(from: price.eur)
-                markUpdated()
-                errorMessage = nil
-            } catch {
-                guard !Task.isCancelled else { return }
-                errorMessage = "Could not refresh live price. Pull to retry."
+                switch result {
+                case .success(let price):
+                    mergeCurrentPrice(presentationalModelConverter.convert(currentPrice: price))
+                    markUpdated()
+                    errorMessage = nil
+                case .failure(let error):
+                    errorMessage = rows.isEmpty ? error.localizedDescription : "Could not refresh live price. Pull to retry."
+                    isLoading = false
+                }
             }
         }
     }
 
-    private func mergeCurrentPrice(_ price: BitcoinPrice) {
-        let item = BitcoinHistoryItem(date: price.date, eur: price.eur)
-        if let index = rows.firstIndex(where: { Calendar.utc.isDate($0.date, inSameDayAs: price.date) }) {
-            rows[index] = item
-        } else {
-            rows.insert(item, at: 0)
-        }
-        rows.sort { $0.date > $1.date }
+    private func apply(_ model: BitcoinListPresentationalModel) {
+        currentPriceText = model.currentPriceText
+        rows = model.rows
+        markUpdated()
+        isLoading = false
     }
 
-    private func updateCurrentPrice(from price: Decimal?) {
-        guard let price else {
-            currentPriceText = "—"
-            return
+    private func mergeCurrentPrice(_ row: BitcoinHistoryRowPresentationalModel) {
+        if let index = rows.firstIndex(where: { $0.id == row.id }) {
+            rows[index] = row
+        } else {
+            rows.append(row)
         }
-        currentPriceText = NumberFormatter.eurCurrency.string(from: price.asNumber) ?? "€\(price)"
+        rows.sort { $0.date > $1.date }
+        currentPriceText = row.priceText
     }
 
     private func markUpdated() {

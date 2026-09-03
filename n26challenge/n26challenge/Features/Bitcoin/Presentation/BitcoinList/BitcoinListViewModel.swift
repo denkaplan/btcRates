@@ -57,6 +57,7 @@ final class BitcoinListViewModel: ObservableObject {
 
     func retry() {
         loadHistory()
+        restartCurrentPriceObservation()
     }
 
     func select(_ item: BitcoinHistoryRowPresentationalModel) {
@@ -76,6 +77,12 @@ final class BitcoinListViewModel: ObservableObject {
                 contentState = .failed(errorPresentationalModelConverter.convert(error))
             }
         }
+    }
+
+    private func restartCurrentPriceObservation() {
+        currentPriceObservationTask?.cancel()
+        currentPriceObservationTask = nil
+        observeCurrentPrice()
     }
 
     private func observeCurrentPrice() {

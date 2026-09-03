@@ -121,6 +121,32 @@ struct BitcoinListViewModelTests {
         #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
+    @Test func retryRestartsCurrentPriceObservationWithFreshStream() async throws {
+        let today = Calendar.utc.startOfDay(for: Date())
+        let observeCurrentPriceUseCase = MockObserveBitcoinCurrentPriceUseCase(resultsByStream: [
+            [.success(Price(date: today, eur: 61_000))],
+            [.success(Price(date: today, eur: 62_000))]
+        ])
+        let viewModel = BitcoinListViewModel(
+            getBitcoinHistoryUseCase: MockGetBitcoinHistoryUseCase(result: .success([HistoryPrice(date: today, eur: 60_000)])),
+            observeBitcoinCurrentPriceUseCase: observeCurrentPriceUseCase,
+            presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: MockErrorPresentationalModelConverter(),
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
+            onSelect: { _ in }
+        )
+
+        viewModel.onAppear()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        #expect(viewModel.currentPriceText == "EUR 61000")
+
+        viewModel.retry()
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        #expect(observeCurrentPriceUseCase.streamCallCount == 2)
+        #expect(viewModel.currentPriceText == "EUR 62000")
+    }
+
     @Test func selectRoutesByDateFromPresentationRow() {
         let selectedDate = Date()
         let selected = BitcoinHistoryRowPresentationalModel(

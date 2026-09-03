@@ -13,11 +13,29 @@ struct MockGetBitcoinHistoryUseCase: GetBitcoinHistoryUseCase {
     }
 }
 
-struct MockObserveBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase {
-    let results: [Result<Price, Error>]
+@MainActor
+final class MockObserveBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCase, @unchecked Sendable {
+    private var resultsByStream: [[Result<Price, Error>]]
+    private(set) var streamCallCount = 0
+
+    init(results: [Result<Price, Error>]) {
+        self.resultsByStream = [results]
+    }
+
+    init(resultsByStream: [[Result<Price, Error>]]) {
+        self.resultsByStream = resultsByStream
+    }
 
     func stream(interval: TimeInterval) -> AsyncStream<Result<Price, Error>> {
-        AsyncStream { continuation in
+        streamCallCount += 1
+        let results: [Result<Price, Error>]
+        if resultsByStream.isEmpty {
+            results = []
+        } else {
+            results = resultsByStream.removeFirst()
+        }
+
+        return AsyncStream { continuation in
             results.forEach { continuation.yield($0) }
             continuation.finish()
         }

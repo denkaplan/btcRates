@@ -19,7 +19,7 @@ struct AppDependencyContainer {
         let provider = NetworkProviderImpl(
             configuration: NetworkConfiguration(
                 host: "https://api.coingecko.com",
-                jsonDecoder: AppDependencyContainer.makeJSONDecoder()
+                jsonDecoder: makeJSONDecoder()
             ),
             errorLogger: { error, context in
                 #if DEBUG

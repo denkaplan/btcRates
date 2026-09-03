@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		76429D34304A00F100D16603 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 76429D33304A00F100D16603 /* README.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		764299863047715200D16603 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -19,6 +23,7 @@
 /* Begin PBXFileReference section */
 		764299783047714F00D16603 /* n26challenge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = n26challenge.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		764299853047715200D16603 /* n26challengeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = n26challengeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		76429D33304A00F100D16603 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -58,6 +63,7 @@
 				7642997A3047715000D16603 /* n26challenge */,
 				764299883047715200D16603 /* n26challengeTests */,
 				764299793047714F00D16603 /* Products */,
+				76429D33304A00F100D16603 /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -164,6 +170,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				76429D34304A00F100D16603 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

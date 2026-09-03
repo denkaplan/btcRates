@@ -54,26 +54,3 @@ struct BitcoinDetailView: View {
         }
     }
 }
-
-#Preview {
-    BitcoinDetailView(
-        viewModel: BitcoinDetailViewModel(
-            initialHistoryRow: BitcoinHistoryRowPresentationalModel(
-                id: "preview",
-                date: Date(),
-                title: DateFormatter.displayDay.string(from: Date()),
-                subtitle: nil,
-                priceText: "€58,000.00"
-            ),
-            getDetailPriceUseCase: PreviewBitcoinDetailUseCase(),
-            presentationalModelConverter: BitcoinDetailPresentationalModelConverterImpl(),
-            errorPresentationalModelConverter: ErrorPresentationalModelConverterImpl()
-        )
-    )
-}
-
-private struct PreviewBitcoinDetailUseCase: GetBitcoinDetailPriceUseCase {
-    func execute(date: Date) async throws -> Price {
-        Price(date: date, eur: 58_000, usd: 63_000, gbp: 49_000)
-    }
-}

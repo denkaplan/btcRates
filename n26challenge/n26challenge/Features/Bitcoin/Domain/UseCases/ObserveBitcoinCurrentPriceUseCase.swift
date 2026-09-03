@@ -5,10 +5,10 @@ protocol ObserveBitcoinCurrentPriceUseCase: Sendable {
 }
 
 struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase {
-    private let getCurrentPriceUseCase: GetBitcoinCurrentPriceUseCase
+    private let repository: BitcoinRepository
 
-    init(getCurrentPriceUseCase: GetBitcoinCurrentPriceUseCase) {
-        self.getCurrentPriceUseCase = getCurrentPriceUseCase
+    init(repository: BitcoinRepository) {
+        self.repository = repository
     }
 
     func stream(interval: TimeInterval = 60) -> AsyncStream<Result<Price, Error>> {
@@ -35,7 +35,7 @@ struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase 
 
     private func emitCurrentPrice(into continuation: AsyncStream<Result<Price, Error>>.Continuation) async {
         do {
-            continuation.yield(.success(try await getCurrentPriceUseCase.execute()))
+            continuation.yield(.success(try await repository.fetchCurrentPrice(for: .bitcoin)))
         } catch {
             continuation.yield(.failure(error))
         }

@@ -9,7 +9,7 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
             Price(date: Date(), eur: 61_000)
         ]
         let useCase = ObserveBitcoinCurrentPriceUseCaseImpl(
-            getCurrentPriceUseCase: SequencedCurrentPriceUseCase(results: prices)
+            repository: SequencedCurrentPriceRepository(results: prices)
         )
         var iterator = useCase.stream(interval: 0.01).makeAsyncIterator()
 
@@ -20,9 +20,9 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
         #expect(try second?.get().eur == 61_000)
     }
 
-    @Test func emitsFailureWhenCurrentPriceUseCaseThrows() async throws {
+    @Test func emitsFailureWhenRepositoryThrows() async throws {
         let useCase = ObserveBitcoinCurrentPriceUseCaseImpl(
-            getCurrentPriceUseCase: FailingCurrentPriceUseCase(error: NetworkError.unknown)
+            repository: FailingCurrentPriceRepository(error: NetworkError.unknown)
         )
         var iterator = useCase.stream(interval: 10).makeAsyncIterator()
 
@@ -39,7 +39,7 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
     }
 }
 
-private struct SequencedCurrentPriceUseCase: GetBitcoinCurrentPriceUseCase {
+private struct SequencedCurrentPriceRepository: BitcoinRepository {
     private actor State {
         var results: [Price]
 
@@ -58,15 +58,31 @@ private struct SequencedCurrentPriceUseCase: GetBitcoinCurrentPriceUseCase {
         self.state = State(results: results)
     }
 
-    func execute() async throws -> Price {
+    func fetchCurrentPrice(for coin: CryptoCoin) async throws -> Price {
         await state.next()
+    }
+
+    func fetchHistoricalPrice(for coin: CryptoCoin, on date: Date) async throws -> Price {
+        throw NetworkError.unknown
+    }
+
+    func fetchMarketPrices(for coin: CryptoCoin, from startDate: Date, to endDate: Date) async throws -> [MarketPricePoint] {
+        []
     }
 }
 
-private struct FailingCurrentPriceUseCase: GetBitcoinCurrentPriceUseCase {
+private struct FailingCurrentPriceRepository: BitcoinRepository {
     let error: Error
 
-    func execute() async throws -> Price {
+    func fetchCurrentPrice(for coin: CryptoCoin) async throws -> Price {
+        throw error
+    }
+
+    func fetchHistoricalPrice(for coin: CryptoCoin, on date: Date) async throws -> Price {
+        throw error
+    }
+
+    func fetchMarketPrices(for coin: CryptoCoin, from startDate: Date, to endDate: Date) async throws -> [MarketPricePoint] {
         throw error
     }
 }

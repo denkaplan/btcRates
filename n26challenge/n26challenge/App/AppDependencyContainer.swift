@@ -27,13 +27,12 @@ struct AppDependencyContainer {
                 #endif
             }
         )
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider)
-        let getCurrentPriceUseCase = GetBitcoinCurrentPriceUseCaseImpl(repository: repository)
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
         return AppDependencyContainer(
             getBitcoinHistoryUseCase: GetBitcoinHistoryUseCaseImpl(repository: repository),
             observeBitcoinCurrentPriceUseCase: ObserveBitcoinCurrentPriceUseCaseImpl(
-                getCurrentPriceUseCase: getCurrentPriceUseCase
+                repository: repository
             ),
             getBitcoinDetailPriceUseCase: GetBitcoinDetailPriceUseCaseImpl(repository: repository),
             bitcoinListPresentationalModelConverter: BitcoinListPresentationalModelConverterImpl(),

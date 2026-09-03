@@ -11,7 +11,7 @@ struct BitcoinRepositoryTests {
                 bitcoin: CurrencyPriceResponse(eur: 60_000, usd: 65_000, gbp: 51_000)
             )
         }
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider, nowProvider: { now })
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider, nowProvider: { now })
 
         let price = try await repository.fetchCurrentPrice(for: .bitcoin)
 
@@ -22,7 +22,7 @@ struct BitcoinRepositoryTests {
         let provider = MockNetworkProvider { _ in
             SimplePriceResponse(bitcoin: CurrencyPriceResponse(eur: nil, usd: 65_000, gbp: 51_000))
         }
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider)
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
         await #expect(throws: BitcoinRepositoryError.missingPrice) {
             _ = try await repository.fetchCurrentPrice(for: .bitcoin)
@@ -39,7 +39,7 @@ struct BitcoinRepositoryTests {
                 )
             )
         }
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider)
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
         let price = try await repository.fetchHistoricalPrice(for: .bitcoin, on: date)
 
@@ -55,7 +55,7 @@ struct BitcoinRepositoryTests {
                 )
             )
         }
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider)
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
         await #expect(throws: BitcoinRepositoryError.missingPrice) {
             _ = try await repository.fetchHistoricalPrice(for: .bitcoin, on: date)
@@ -72,7 +72,7 @@ struct BitcoinRepositoryTests {
                 MarketChartPricePoint(timestampMilliseconds: end.timeIntervalSince1970 * 1000, price: 59_000)
             ])
         }
-        let repository = CoingeckoBitcoinRepository(networkProvider: provider)
+        let repository = CoingeckoBitcoinRepositoryImpl(networkProvider: provider)
 
         let prices = try await repository.fetchMarketPrices(for: .bitcoin, from: start, to: end)
 

@@ -1,5 +1,6 @@
 import Foundation
-struct CoingeckoBitcoinRepository: BitcoinRepository {
+
+final class CoingeckoBitcoinRepositoryImpl: BitcoinRepository {
     private let networkProvider: NetworkProvider
     private let nowProvider: @Sendable () -> Date
 

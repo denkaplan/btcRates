@@ -8,23 +8,38 @@
 import Foundation
 
 enum CoingeckoEndpoint {
-    typealias EmptyBody = [String: String]
-
-    static func simplePrice(coin: CryptoCoin, currencies: [Currency] = [.eur, .usd, .gbp]) -> EndpointBuilder<SimplePriceResponse, EmptyBody> {
-        EndpointBuilder<SimplePriceResponse, EmptyBody>("/api/v3/simple/price")
+    /// Endpoint representation of /api/v3/simple/price
+    /// - Parameters:
+    ///   - coin: crypto currency
+    ///   - currencies: currencies codes for price
+    /// - Returns: Price for coin
+    static func simplePrice(coin: CryptoCoin, currencies: [Currency] = [.eur, .usd, .gbp]) -> EndpointBuilder<SimplePriceResponse, Blank> {
+        EndpointBuilder<SimplePriceResponse, Blank>("/api/v3/simple/price")
             .withQuery("ids", coin.apiIdentifier)
             .withQuery("vs_currencies", currencies.map(\.apiCode).joined(separator: ","))
     }
-
-    static func marketChartRange(coin: CryptoCoin, currency: Currency = .eur, from startDate: Date, to endDate: Date) -> EndpointBuilder<MarketChartResponse, EmptyBody> {
-        EndpointBuilder<MarketChartResponse, EmptyBody>("/api/v3/coins/\(coin.apiIdentifier)/market_chart/range")
+    
+    ///  Market price for crypto currency in given history range
+    /// - Parameters:
+    ///   - coin: crypto currency
+    ///   - currency: currency to return
+    ///   - startDate: start of interval
+    ///   - endDate: end of interval
+    /// - Returns: Prices for given interval
+    static func marketChartRange(coin: CryptoCoin, currency: Currency = .eur, from startDate: Date, to endDate: Date) -> EndpointBuilder<MarketChartResponse, Blank> {
+        EndpointBuilder<MarketChartResponse, Blank>("/api/v3/coins/\(coin.apiIdentifier)/market_chart/range")
             .withQuery("vs_currency", currency.apiCode)
             .withQuery("from", timestampString(for: startDate))
             .withQuery("to", timestampString(for: Calendar.utc.endOfDay(for: endDate)))
     }
-
-    static func history(coin: CryptoCoin, date: Date) -> EndpointBuilder<HistoricalPriceResponse, EmptyBody> {
-        EndpointBuilder<HistoricalPriceResponse, EmptyBody>("/api/v3/coins/\(coin.apiIdentifier)/history")
+    
+    /// Historical price for crypto currency
+    /// - Parameters:
+    ///   - coin: crypto currency
+    ///   - date: date
+    /// - Returns: Historical price in multiple currencies
+    static func history(coin: CryptoCoin, date: Date) -> EndpointBuilder<HistoricalPriceResponse, Blank> {
+        EndpointBuilder<HistoricalPriceResponse, Blank>("/api/v3/coins/\(coin.apiIdentifier)/history")
             .withQuery("date", DateFormatter.apiDayString(from: date))
             .withQuery("localization", "false")
     }

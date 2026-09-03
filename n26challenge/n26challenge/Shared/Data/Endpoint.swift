@@ -62,6 +62,7 @@ struct EndpointBuilder<R: Decodable & Sendable, B: Encodable & Sendable>: Endpoi
 
 // MARK: Types
 
+/// Empty object for Response or Request
 struct Blank: Codable, Sendable {}
 
 enum NetworkRequest: String, Sendable {

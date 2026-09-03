@@ -9,6 +9,7 @@ final class AppCoordinator: Coordinator {
         self.window = window
         self.dependencies = dependencies
         self.navigationController = UINavigationController()
+        self.navigationController.navigationBar.prefersLargeTitles = true
         super.init()
     }
 

@@ -12,6 +12,8 @@ protocol Endpoint: Sendable {
     var headers: [(key: String, value: String)] { get }
 }
 
+// MARK: Builder
+
 struct EndpointBuilder<R: Decodable & Sendable, B: Encodable & Sendable>: Endpoint {
     typealias Response = R
     typealias Body = B
@@ -58,4 +60,11 @@ struct EndpointBuilder<R: Decodable & Sendable, B: Encodable & Sendable>: Endpoi
     }
 }
 
+// MARK: Types
+
 struct Blank: Codable, Sendable {}
+
+enum NetworkRequest: String, Sendable {
+    case GET
+    case POST
+}

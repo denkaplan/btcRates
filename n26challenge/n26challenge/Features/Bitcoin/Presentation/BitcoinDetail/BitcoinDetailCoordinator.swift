@@ -35,6 +35,7 @@ final class BitcoinDetailCoordinator: Coordinator {
         self.viewController = viewController
         previousNavigationDelegate = navigationController.delegate
         navigationController.delegate = self
+        navigationController.setNavigationBarHidden(false, animated: true)
         navigationController.pushViewController(viewController, animated: true)
     }
 
@@ -55,5 +56,12 @@ extension BitcoinDetailCoordinator: UINavigationControllerDelegate {
         guard let coordinatedViewController = self.viewController else { return }
         guard !navigationController.viewControllers.contains(coordinatedViewController) else { return }
         finish()
+    }
+    
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        guard viewController != self.viewController else {
+            return
+        }
+        navigationController.setNavigationBarHidden(true, animated: animated)
     }
 }

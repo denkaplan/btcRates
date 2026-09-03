@@ -20,6 +20,7 @@ struct ErrorStateView: View {
                 .multilineTextAlignment(.center)
             Button("Retry", action: retry)
                 .buttonStyle(.borderedProminent)
+                .tint(ColorPalette.accent)
         }
         .padding(24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

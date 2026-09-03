@@ -5,11 +5,6 @@ protocol NetworkProvider: Sendable {
     func execute<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
 
-enum NetworkRequest: String, Sendable {
-    case GET
-    case POST
-}
-
 final class NetworkProviderImpl: NetworkProvider, @unchecked Sendable {
     private let session: URLSession
     private let configuration: NetworkConfiguration

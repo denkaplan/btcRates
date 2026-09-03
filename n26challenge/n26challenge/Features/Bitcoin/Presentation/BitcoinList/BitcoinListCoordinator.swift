@@ -21,8 +21,8 @@ final class BitcoinListCoordinator: Coordinator {
             }
         )
         let viewController = UIHostingController(rootView: BitcoinListView(viewModel: viewModel))
-        viewController.title = "Bitcoin"
         navigationController.setViewControllers([viewController], animated: false)
+        navigationController.setNavigationBarHidden(true, animated: false)
     }
 
     private func showDetails(for date: Date) {

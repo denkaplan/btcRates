@@ -36,7 +36,10 @@ struct BitcoinDetailPresentationalModelConverterImpl: BitcoinDetailPresentationa
 
     private func format(value: Decimal?, currency: Currency) -> String {
         guard let value else { return "—" }
-        return NumberFormatter.currency(currency).string(from: value.asNumber) ?? "\(currency.fallbackPrefix)\(value)"
+        return value.formatted(
+            .currency(code: currency.code)
+            .precision(.fractionLength(2))
+        )
     }
 }
 

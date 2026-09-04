@@ -43,6 +43,9 @@ struct BitcoinListPresentationalModelConverterImpl: BitcoinListPresentationalMod
     }
 
     private func format(value: Decimal, currency: Currency) -> String {
-        NumberFormatter.currency(currency).string(from: value.asNumber) ?? "\(currency.fallbackPrefix)\(value)"
+        value.formatted(
+            .currency(code: currency.code)
+            .precision(.fractionLength(2))
+        )
     }
 }

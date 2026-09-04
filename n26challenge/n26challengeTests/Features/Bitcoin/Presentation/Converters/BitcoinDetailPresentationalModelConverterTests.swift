@@ -7,7 +7,6 @@ struct BitcoinDetailPresentationalModelConverterTests {
     @Test func createsFallbackModelFromSelectedHistoryRow() {
         // Arrange
         let row = BitcoinHistoryRowPresentationalModel(
-            id: "today",
             date: Date(),
             title: "Today",
             subtitle: nil,

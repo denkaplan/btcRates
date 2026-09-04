@@ -1,6 +1,6 @@
 import Foundation
 
-struct HistoryPrice: Equatable, Identifiable, Sendable {
+struct HistoryPrice: Equatable, Sendable {
     let date: Date
     let eur: Decimal
     let coin: CryptoCoin
@@ -10,6 +10,4 @@ struct HistoryPrice: Equatable, Identifiable, Sendable {
         self.eur = eur
         self.coin = coin
     }
-
-    var id: Date { Calendar.utc.startOfDay(for: date) }
 }

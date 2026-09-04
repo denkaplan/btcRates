@@ -19,7 +19,7 @@ struct BitcoinListPresentationalModelConverterTests {
         // Assert
         #expect(model.currentPriceText.contains("61"))
         #expect(model.rows.count == 2)
-        #expect(model.rows[0].id == today.formatted(.apiDay))
+        #expect(model.rows[0].id == today.formatted(.displayDay))
         #expect(model.rows[0].title == today.formatted(.displayDay))
         #expect(model.rows[0].subtitle == "Live, refreshes every 60 seconds")
         #expect(model.rows[0].priceText.contains("61"))
@@ -36,7 +36,7 @@ struct BitcoinListPresentationalModelConverterTests {
         let row = converter.convert(currentPrice: Price(date: date, eur: 62_000))
 
         // Assert
-        #expect(row.id == date.formatted(.apiDay))
+        #expect(row.id == date.formatted(.displayDay))
         #expect(row.title == date.formatted(.displayDay))
         #expect(row.subtitle == "Live, refreshes every 60 seconds")
         #expect(row.priceText.contains("62"))

@@ -1,11 +1,12 @@
 import Foundation
 
 struct BitcoinHistoryRowPresentationalModel: Equatable, Identifiable, Sendable {
-    let id: String
     let date: Date
     let title: String
     let subtitle: String?
     let priceText: String
+    
+    var id: String { title }
 }
 
 struct BitcoinListPresentationalModel: Equatable, Sendable {

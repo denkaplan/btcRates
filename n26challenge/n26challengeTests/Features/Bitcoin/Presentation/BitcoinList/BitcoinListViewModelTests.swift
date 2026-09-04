@@ -170,7 +170,6 @@ struct BitcoinListViewModelTests {
         // Arrange
         let selectedDate = Date()
         let selected = BitcoinHistoryRowPresentationalModel(
-            id: "selected",
             date: selectedDate,
             title: "Today",
             subtitle: nil,

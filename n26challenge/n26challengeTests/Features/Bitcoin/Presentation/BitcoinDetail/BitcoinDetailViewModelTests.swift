@@ -87,7 +87,6 @@ struct BitcoinDetailViewModelTests {
 
 private func makeInitialRow() -> BitcoinHistoryRowPresentationalModel {
     BitcoinHistoryRowPresentationalModel(
-        id: "today",
         date: Date(),
         title: "Today",
         subtitle: nil,

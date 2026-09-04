@@ -34,6 +34,6 @@ struct BitcoinDetailAssembly: ModuleAssembly {
         viewController.title = initialHistoryRow.title
         viewController.navigationItem.largeTitleDisplayMode = .never
 
-        return Module(view: viewController, viewModel: viewModel)
+        return .init(view: viewController, viewModel: viewModel)
     }
 }

@@ -40,7 +40,7 @@ enum CoingeckoEndpoint {
     /// - Returns: Historical price in multiple currencies
     static func history(coin: CryptoCoin, date: Date) -> EndpointBuilder<HistoricalPriceResponse, Blank> {
         EndpointBuilder<HistoricalPriceResponse, Blank>("/api/v3/coins/\(coin.apiIdentifier)/history")
-            .withQuery("date", DateFormatter.apiDayString(from: date))
+            .withQuery("date", date.formatted(.apiDay))
             .withQuery("localization", "false")
     }
     private static func timestampString(for date: Date) -> String {

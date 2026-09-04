@@ -18,9 +18,9 @@ final class MockBitcoinListPresentationalModelConverter: BitcoinListPresentation
     func convert(currentPrice: Price) -> BitcoinHistoryRowPresentationalModel {
         convertedCurrentPrices.append(currentPrice)
         return BitcoinHistoryRowPresentationalModel(
-            id: DateFormatter.apiDayString(from: Calendar.utc.startOfDay(for: currentPrice.date)),
+            id: Calendar.utc.startOfDay(for: currentPrice.date).formatted(.apiDay),
             date: currentPrice.date,
-            title: "Date \(DateFormatter.apiDayString(from: currentPrice.date))",
+            title: "Date \(currentPrice.date.formatted(.apiDay))",
             subtitle: "Live",
             priceText: "EUR \(currentPrice.eur)"
         )
@@ -28,9 +28,9 @@ final class MockBitcoinListPresentationalModelConverter: BitcoinListPresentation
 
     private func makeRow(_ historyPrice: HistoryPrice) -> BitcoinHistoryRowPresentationalModel {
         BitcoinHistoryRowPresentationalModel(
-            id: DateFormatter.apiDayString(from: Calendar.utc.startOfDay(for: historyPrice.date)),
+            id: Calendar.utc.startOfDay(for: historyPrice.date).formatted(.apiDay),
             date: historyPrice.date,
-            title: "Date \(DateFormatter.apiDayString(from: historyPrice.date))",
+            title: "Date \(historyPrice.date.formatted(.apiDay))",
             subtitle: nil,
             priceText: "EUR \(historyPrice.eur)"
         )

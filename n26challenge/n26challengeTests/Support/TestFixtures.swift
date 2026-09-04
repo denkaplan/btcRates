@@ -2,13 +2,14 @@ import Foundation
 @testable import n26challenge
 
 func requiredAPIDate(_ string: String, file: StaticString = #file, line: UInt = #line) -> Date {
-    let formatter = DateFormatter()
-    formatter.calendar = .utc
-    formatter.timeZone = TimeZone(secondsFromGMT: 0)
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "dd-MM-yyyy"
-
-    guard let date = formatter.date(from: string) else {
+    let components = string.split(separator: "-")
+    guard
+        components.count == 3,
+        let day = Int(components[0]),
+        let month = Int(components[1]),
+        let year = Int(components[2]),
+        let date = Calendar.utc.date(from: DateComponents(year: year, month: month, day: day))
+    else {
         preconditionFailure("Invalid API date fixture: \(string)", file: file, line: line)
     }
     return date

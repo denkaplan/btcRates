@@ -7,6 +7,6 @@ protocol LastUpdatedTextFormatter {
 
 struct LastUpdatedTextFormatterImpl: LastUpdatedTextFormatter {
     func string(from date: Date) -> String {
-        "Updated " + DateFormatter.lastUpdatedTime.string(from: date)
+        "Updated " + date.formatted(.lastUpdatedTime)
     }
 }

@@ -36,7 +36,7 @@ struct BitcoinDetailPresentationalModelConverterTests {
 
         // Assert
         #expect(model.title == "Bitcoin exchange rate")
-        #expect(model.dateText == DateFormatter.displayDay.string(from: date))
+        #expect(model.dateText == date.formatted(.displayDay))
         #expect(model.currencyRows.map(\.currency) == [.eur, .usd, .gbp])
         #expect(model.currencyRows.map(\.code) == Currency.allCases.map(\.code))
         #expect(model.currencyRows.map(\.title) == Currency.allCases.map(\.description))

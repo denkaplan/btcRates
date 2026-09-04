@@ -11,7 +11,7 @@ struct BitcoinDetailPresentationalModelConverterImpl: BitcoinDetailPresentationa
     func convert(price: Price) -> BitcoinDetailPresentationalModel {
         BitcoinDetailPresentationalModel(
             title: "Bitcoin exchange rate",
-            dateText: DateFormatter.displayDay.string(from: price.date),
+            dateText: price.date.formatted(.displayDay),
             currencyRows: Currency.allCases.map { currency in
                 BitcoinCurrencyPresentationalModel(
                     currency: currency,

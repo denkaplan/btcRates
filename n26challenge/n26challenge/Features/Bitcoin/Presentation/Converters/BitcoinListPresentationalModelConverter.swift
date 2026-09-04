@@ -22,7 +22,7 @@ struct BitcoinListPresentationalModelConverterImpl: BitcoinListPresentationalMod
         BitcoinHistoryRowPresentationalModel(
             id: rowID(for: currentPrice.date),
             date: currentPrice.date,
-            title: DateFormatter.displayDay.string(from: currentPrice.date),
+            title: currentPrice.date.formatted(.displayDay),
             subtitle: Calendar.utc.isDateInToday(currentPrice.date) ? "Live, refreshes every 60 seconds" : nil,
             priceText: format(value: currentPrice.eur, currency: displayCurrency)
         )
@@ -32,14 +32,14 @@ struct BitcoinListPresentationalModelConverterImpl: BitcoinListPresentationalMod
         BitcoinHistoryRowPresentationalModel(
             id: rowID(for: historyPrice.date),
             date: historyPrice.date,
-            title: DateFormatter.displayDay.string(from: historyPrice.date),
+            title: historyPrice.date.formatted(.displayDay),
             subtitle: Calendar.utc.isDateInToday(historyPrice.date) ? "Live, refreshes every 60 seconds" : nil,
             priceText: format(value: historyPrice.eur, currency: displayCurrency)
         )
     }
 
     private func rowID(for date: Date) -> String {
-        DateFormatter.apiDayString(from: Calendar.utc.startOfDay(for: date))
+        Calendar.utc.startOfDay(for: date).formatted(.apiDay)
     }
 
     private func format(value: Decimal, currency: Currency) -> String {

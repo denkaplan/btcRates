@@ -18,7 +18,7 @@ struct CalendarUTCTests {
         let endOfDay = Calendar.utc.endOfDay(for: date)
 
         // Assert
-        #expect(DateFormatter.apiDayString(from: endOfDay) == "03-09-2026")
+        #expect(endOfDay.formatted(.apiDay) == "03-09-2026")
         #expect(Calendar.utc.component(.hour, from: endOfDay) == 23)
         #expect(Calendar.utc.component(.minute, from: endOfDay) == 59)
         #expect(Calendar.utc.component(.second, from: endOfDay) == 59)

@@ -9,6 +9,7 @@ Small iPhone app for the N26 coding challenge. It fetches Bitcoin exchange rates
 ## Requirements
 
 - Xcode 16 or newer
+- Swift 6
 - iOS 15 minimum deployment target
 - Network access to `https://api.coingecko.com`
 

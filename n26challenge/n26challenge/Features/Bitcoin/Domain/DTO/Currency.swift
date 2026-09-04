@@ -26,14 +26,4 @@ enum Currency: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    var fallbackPrefix: String {
-        switch self {
-        case .eur:
-            return "€"
-        case .usd:
-            return "$"
-        case .gbp:
-            return "£"
-        }
-    }
 }

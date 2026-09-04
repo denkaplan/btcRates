@@ -10,10 +10,4 @@ enum CryptoCoin: Equatable, Sendable {
         }
     }
 
-    var displaySymbol: String {
-        switch self {
-        case .bitcoin:
-            return "BTC"
-        }
-    }
 }

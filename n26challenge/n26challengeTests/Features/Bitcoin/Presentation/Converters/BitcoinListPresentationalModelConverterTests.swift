@@ -21,7 +21,7 @@ struct BitcoinListPresentationalModelConverterTests {
         #expect(model.rows.count == 2)
         #expect(model.rows[0].id == today.formatted(.displayDay))
         #expect(model.rows[0].title == today.formatted(.displayDay))
-        #expect(model.rows[0].subtitle == "Live, refreshes every 60 seconds")
+        #expect(model.rows[0].subtitle == BitcoinListRefresh.livePriceSubtitle)
         #expect(model.rows[0].priceText.contains("61"))
         #expect(model.rows[1].subtitle == nil)
         #expect(model.rows[1].priceText.contains("60"))
@@ -38,7 +38,7 @@ struct BitcoinListPresentationalModelConverterTests {
         // Assert
         #expect(row.id == date.formatted(.displayDay))
         #expect(row.title == date.formatted(.displayDay))
-        #expect(row.subtitle == "Live, refreshes every 60 seconds")
+        #expect(row.subtitle == BitcoinListRefresh.livePriceSubtitle)
         #expect(row.priceText.contains("62"))
     }
 }

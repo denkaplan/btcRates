@@ -5,7 +5,7 @@ class Coordinator: NSObject {
     private(set) var childCoordinators: [Coordinator] = []
 
     func start() {
-        assertionFailure("Subclasses must override start().")
+        preconditionFailure("Subclasses must override start().")
     }
 
     func store(_ coordinator: Coordinator) {

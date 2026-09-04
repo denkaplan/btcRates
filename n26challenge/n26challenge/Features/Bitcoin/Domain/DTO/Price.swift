@@ -5,19 +5,16 @@ struct Price: Equatable, Sendable {
     let eur: Decimal
     let usd: Decimal?
     let gbp: Decimal?
-    let coin: CryptoCoin
 
     init(
         date: Date,
         eur: Decimal,
         usd: Decimal? = nil,
-        gbp: Decimal? = nil,
-        coin: CryptoCoin = .bitcoin
+        gbp: Decimal? = nil
     ) {
         self.date = date
         self.eur = eur
         self.usd = usd
         self.gbp = gbp
-        self.coin = coin
     }
 }

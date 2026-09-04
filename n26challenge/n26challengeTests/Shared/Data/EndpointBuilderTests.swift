@@ -14,7 +14,19 @@ struct EndpointBuilderTests {
         #expect(endpoint.body == nil)
         #expect(endpoint.queryParams.isEmpty)
         #expect(endpoint.headers.isEmpty)
-        #expect(endpoint.responseType == Blank.self)
+    }
+
+    @Test func withBodyPreservesCurrentMethod() {
+        // Arrange
+        let body = ["key": "value"]
+
+        // Act
+        let endpoint = EndpointBuilder<Blank, [String: String]>("/search")
+            .withBody(body)
+
+        // Assert
+        #expect(endpoint.method == .GET)
+        #expect(endpoint.body == body)
     }
 
     @Test func builderReturnsCopyWithMethodBodyQueryAndHeaders() {

@@ -4,7 +4,6 @@ protocol Endpoint: Sendable {
     associatedtype Response: Decodable
     associatedtype Body: Encodable
 
-    var responseType: Response.Type { get }
     var path: String { get }
     var method: NetworkRequest { get }
     var body: Body? { get }
@@ -19,7 +18,6 @@ struct EndpointBuilder<R: Decodable & Sendable, B: Encodable & Sendable>: Endpoi
     typealias Body = B
 
     let path: String
-    let responseType: Response.Type = R.self
     let method: NetworkRequest
     let body: B?
     let queryParams: [(key: String, value: String)]
@@ -46,7 +44,7 @@ struct EndpointBuilder<R: Decodable & Sendable, B: Encodable & Sendable>: Endpoi
 
     @discardableResult
     func withBody(_ body: B?) -> Self {
-        .init(path, method: .POST, body: body, queryParams: queryParams, headers: headers)
+        .init(path, method: method, body: body, queryParams: queryParams, headers: headers)
     }
 
     @discardableResult

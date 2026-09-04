@@ -1,11 +1,18 @@
 import Combine
 import Foundation
 
+enum BitcoinListRefresh {
+    static let historyDaysIncludingToday = 14
+    static let currentPriceInterval: TimeInterval = 60
+    static let livePriceSubtitle = "Live, refreshes every \(Int(currentPriceInterval)) seconds"
+}
+
 @MainActor
 final class BitcoinListViewModel: ObservableObject {
     @Published private(set) var currentPriceText = "—"
     @Published private(set) var contentState: State = .loading
     @Published private(set) var lastUpdatedText: String?
+
 
     enum State: Equatable {
         case loading
@@ -68,9 +75,14 @@ final class BitcoinListViewModel: ObservableObject {
         historyTask = Task { [weak self] in
             guard let self else { return }
             do {
-                apply(presentationalModelConverter.convert(history: try await getBitcoinHistoryUseCase.execute(daysIncludingToday: 14)))
+                let history = try await getBitcoinHistoryUseCase.execute(daysIncludingToday: BitcoinListRefresh.historyDaysIncludingToday)
+                guard !Task.isCancelled else { return }
+                apply(presentationalModelConverter.convert(history: history))
+            } catch is CancellationError {
+                return
             } catch {
-                contentState = .failed(errorPresentationalModelConverter.convert(error))
+                guard !Task.isCancelled else { return }
+                applyHistoryFailure(error)
             }
         }
     }
@@ -82,10 +94,11 @@ final class BitcoinListViewModel: ObservableObject {
     }
 
     private func observeCurrentPrice() {
+        let stream = observeBitcoinCurrentPriceUseCase.stream(interval: BitcoinListRefresh.currentPriceInterval)
         currentPriceObservationTask = Task { [weak self] in
-            guard let self else { return }
-            for await result in observeBitcoinCurrentPriceUseCase.stream(interval: 60) {
+            for await result in stream {
                 guard !Task.isCancelled else { return }
+                guard let self else { return }
                 switch result {
                 case .success(let price):
                     mergeCurrentPrice(presentationalModelConverter.convert(currentPrice: price))
@@ -107,6 +120,15 @@ final class BitcoinListViewModel: ObservableObject {
         markUpdated()
     }
 
+    private func applyHistoryFailure(_ error: Error) {
+        let message = errorPresentationalModelConverter.convert(error)
+        if contentRows.isEmpty {
+            contentState = .failed(message)
+        } else {
+            contentState = .loaded(rows: contentRows, message: message)
+        }
+    }
+
     private func mergeCurrentPrice(_ row: BitcoinHistoryRowPresentationalModel) {
         var rows = contentRows
         if let index = rows.firstIndex(where: { $0.id == row.id }) {
@@ -116,13 +138,7 @@ final class BitcoinListViewModel: ObservableObject {
         }
         rows.sort { $0.date > $1.date }
         currentPriceText = row.priceText
-        let error: ErrorPresentationalModel? = {
-            if rows.count > 1 {
-                return nil
-            }
-            return errorPresentationalModelConverter.historyPriceError()
-        }()
-        contentState = .loaded(rows: rows, message: error)
+        contentState = .loaded(rows: rows, message: nil)
     }
 
     private var contentRows: [BitcoinHistoryRowPresentationalModel] {

@@ -136,6 +136,33 @@ struct BitcoinListViewModelTests {
         #expect(message == MockErrorPresentationalModelConverter().livePriceRefreshResult)
     }
 
+    @Test func historyRefreshFailurePreservesExistingRowsAndShowsInlineError() async throws {
+        // Arrange
+        let initial = [HistoryPrice(date: Date(), eur: 60_000)]
+        let errorConverter = MockErrorPresentationalModelConverter()
+        let viewModel = BitcoinListViewModel(
+            getBitcoinHistoryUseCase: SequencedHistoryUseCase(results: [.success(initial), .failure(NetworkError.timeout)]),
+            observeBitcoinCurrentPriceUseCase: MockObserveBitcoinCurrentPriceUseCase(results: []),
+            presentationalModelConverter: MockBitcoinListPresentationalModelConverter(),
+            errorPresentationalModelConverter: errorConverter,
+            lastUpdatedTextFormatter: MockLastUpdatedTextFormatter(),
+            onSelect: { _ in }
+        )
+
+        // Act
+        viewModel.onAppear()
+        try await Task.sleep(nanoseconds: 100_000_000)
+        viewModel.retry()
+        try await Task.sleep(nanoseconds: 100_000_000)
+
+        // Assert
+        guard case .loaded(let rows, let message) = viewModel.contentState else {
+            Issue.record("Expected loaded state")
+            return
+        }
+        #expect(rows.map(\.priceText) == ["EUR 60000"])
+        #expect(message == errorConverter.result)
+    }
 
     @Test func retryRestartsCurrentPriceObservationWithFreshStream() async throws {
         // Arrange
@@ -195,32 +222,27 @@ struct BitcoinListViewModelTests {
 }
 
 
-private struct CountingHistoryUseCase: GetBitcoinHistoryUseCase {
+private struct SequencedHistoryUseCase: GetBitcoinHistoryUseCase {
     private actor State {
-        var executeCallCount = 0
+        private var results: [Result<[HistoryPrice], Error>]
 
-        func increment() {
-            executeCallCount += 1
+        init(results: [Result<[HistoryPrice], Error>]) {
+            self.results = results
         }
 
-        func count() -> Int {
-            executeCallCount
+        func next() throws -> [HistoryPrice] {
+            guard !results.isEmpty else { return [] }
+            return try results.removeFirst().get()
         }
     }
 
-    private let result: Result<[HistoryPrice], Error>
-    private let state = State()
+    private let state: State
 
-    init(result: Result<[HistoryPrice], Error>) {
-        self.result = result
+    init(results: [Result<[HistoryPrice], Error>]) {
+        self.state = State(results: results)
     }
 
     func execute(daysIncludingToday: Int) async throws -> [HistoryPrice] {
-        await state.increment()
-        return try result.get()
-    }
-
-    func executeCallCount() async -> Int {
-        await state.count()
+        try await state.next()
     }
 }

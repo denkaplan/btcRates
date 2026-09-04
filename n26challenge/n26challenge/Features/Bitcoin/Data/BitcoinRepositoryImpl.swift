@@ -19,8 +19,7 @@ final class CoingeckoBitcoinRepositoryImpl: BitcoinRepository {
             date: nowProvider(),
             eur: eur,
             usd: response.bitcoin.usd,
-            gbp: response.bitcoin.gbp,
-            coin: coin
+            gbp: response.bitcoin.gbp
         )
     }
 
@@ -31,8 +30,7 @@ final class CoingeckoBitcoinRepositoryImpl: BitcoinRepository {
             date: date,
             eur: eur,
             usd: response.marketData.currentPrice.usd,
-            gbp: response.marketData.currentPrice.gbp,
-            coin: coin
+            gbp: response.marketData.currentPrice.gbp
         )
     }
 
@@ -43,8 +41,7 @@ final class CoingeckoBitcoinRepositoryImpl: BitcoinRepository {
         return response.prices.map { point in
             MarketPricePoint(
                 date: Date(timeIntervalSince1970: point.timestampMilliseconds / 1000),
-                eur: point.price,
-                coin: coin
+                eur: point.price
             )
         }
     }

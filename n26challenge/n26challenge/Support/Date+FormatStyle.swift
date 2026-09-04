@@ -17,8 +17,8 @@ extension FormatStyle where Self == Date.FormatStyle {
             date: .abbreviated,
             time: .omitted,
             locale: .current,
-            calendar: .current,
-            timeZone: .current
+            calendar: .utc,
+            timeZone: TimeZone(secondsFromGMT: 0)!
         )
     }
 

@@ -10,7 +10,7 @@ enum BitcoinCurrentPriceObservationError: LocalizedError, Equatable, Sendable {
     var errorDescription: String? {
         switch self {
         case .invalidInterval:
-            return "The current-price refresh interval must be greater than zero."
+            return "The current-price refresh interval must be finite, greater than zero and not too large."
         }
     }
 }
@@ -61,7 +61,7 @@ struct ObserveBitcoinCurrentPriceUseCaseImpl: ObserveBitcoinCurrentPriceUseCase 
     private func nanoseconds(from interval: TimeInterval) -> UInt64? {
         guard interval.isFinite, interval > 0 else { return nil }
         let nanoseconds = interval * 1_000_000_000
-        guard nanoseconds < TimeInterval(UInt64.max) else { return UInt64.max }
+        guard nanoseconds < TimeInterval(UInt64.max) else { return nil }
         return UInt64(nanoseconds)
     }
 }

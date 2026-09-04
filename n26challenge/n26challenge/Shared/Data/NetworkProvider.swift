@@ -5,7 +5,7 @@ protocol NetworkProvider: Sendable {
     func execute<T: Endpoint>(_ endpoint: T) async throws -> T.Response
 }
 
-final class NetworkProviderImpl: NetworkProvider, @unchecked Sendable {
+final class NetworkProviderImpl: NetworkProvider {
     private let session: URLSession
     private let configuration: NetworkConfiguration
     private let errorLogger: @Sendable (Error, [String: Any]?) -> Void
@@ -73,14 +73,14 @@ final class NetworkProviderImpl: NetworkProvider, @unchecked Sendable {
 
         var request = URLRequest(url: url)
         request.httpMethod = endpoint.method.rawValue
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         if let body = endpoint.body {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = try? encoder.encode(body)
         }
         endpoint.headers.forEach {
-            request.addValue($0.value, forHTTPHeaderField: $0.key)
+            request.setValue($0.value, forHTTPHeaderField: $0.key)
         }
         return request
     }

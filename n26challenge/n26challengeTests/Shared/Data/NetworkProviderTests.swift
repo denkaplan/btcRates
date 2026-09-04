@@ -9,7 +9,7 @@ struct NetworkProviderTests {
         let session = makeSession { request in
             #expect(request.url?.absoluteString == "https://example.com/api/test?search=bitcoin")
             #expect(request.httpMethod == "GET")
-            #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
+            #expect(request.value(forHTTPHeaderField: "Content-Type") == nil)
             #expect(request.value(forHTTPHeaderField: "X-Test") == "1")
 
         // Act

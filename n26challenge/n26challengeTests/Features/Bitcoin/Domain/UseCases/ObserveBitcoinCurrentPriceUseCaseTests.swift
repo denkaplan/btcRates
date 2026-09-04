@@ -48,7 +48,7 @@ struct ObserveBitcoinCurrentPriceUseCaseTests {
         // Arrange
         let useCase = ObserveBitcoinCurrentPriceUseCaseImpl(repository: MockBitcoinRepository.empty)
 
-        for interval in [0, -1, TimeInterval.nan] {
+        for interval in [0, -1, TimeInterval.nan, TimeInterval.greatestFiniteMagnitude] {
             var iterator = useCase.stream(interval: interval).makeAsyncIterator()
 
             // Act

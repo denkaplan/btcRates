@@ -82,8 +82,4 @@ struct MockErrorPresentationalModelConverter: ErrorPresentationalModelConverter 
     func livePriceRefreshError() -> ErrorPresentationalModel {
         livePriceRefreshResult
     }
-
-    func historyPriceError() -> ErrorPresentationalModel {
-        result
-    }
 }

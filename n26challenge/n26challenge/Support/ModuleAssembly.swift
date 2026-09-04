@@ -7,7 +7,7 @@
 
 import UIKit
 
-struct Module<T: Sendable>: Sendable {
+struct Module<T> {
     let view: UIViewController
     let viewModel: T
 }

@@ -37,13 +37,10 @@ struct GetBitcoinHistoryUseCaseImpl: GetBitcoinHistoryUseCase {
         let startDate = calendar.requiredDate(byAdding: .day, value: -(daysIncludingToday - 1), to: today)
         let pricePoints = try await repository.fetchMarketPrices(for: .bitcoin, from: startDate, to: today)
 
-        return latestPricePerDay(from: pricePoints)
-            .filter { isDate($0.date, inClosedRangeFrom: startDate, to: today) }
-            .reduce(into: [Date: HistoryPrice]()) { uniqueItems, item in
-                uniqueItems[calendar.startOfDay(for: item.date)] = item
-            }
-            .values
-            .sorted { $0.date > $1.date }
+        return latestPricePerDay(
+            from: pricePoints.filter { isDate($0.date, inClosedRangeFrom: startDate, to: today) }
+        )
+        .sorted { $0.date > $1.date }
     }
 
     func latestPricePerDay(from pricePoints: [MarketPricePoint]) -> [HistoryPrice] {
@@ -53,7 +50,7 @@ struct GetBitcoinHistoryUseCaseImpl: GetBitcoinHistoryUseCase {
 
         return groupedByDay.compactMap { date, points in
             guard let latestPoint = points.max(by: { $0.date < $1.date }) else { return nil }
-            return HistoryPrice(date: date, eur: latestPoint.eur, coin: latestPoint.coin)
+            return HistoryPrice(date: date, eur: latestPoint.eur)
         }
     }
 

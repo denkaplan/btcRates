@@ -22,7 +22,7 @@ struct BitcoinListPresentationalModelConverterImpl: BitcoinListPresentationalMod
         BitcoinHistoryRowPresentationalModel(
             date: currentPrice.date,
             title: currentPrice.date.formatted(.displayDay),
-            subtitle: Calendar.utc.isDateInToday(currentPrice.date) ? "Live, refreshes every 60 seconds" : nil,
+            subtitle: Calendar.utc.isDateInToday(currentPrice.date) ? BitcoinListRefresh.livePriceSubtitle : nil,
             priceText: format(value: currentPrice.eur, currency: displayCurrency)
         )
     }
@@ -31,7 +31,7 @@ struct BitcoinListPresentationalModelConverterImpl: BitcoinListPresentationalMod
         BitcoinHistoryRowPresentationalModel(
             date: historyPrice.date,
             title: historyPrice.date.formatted(.displayDay),
-            subtitle: Calendar.utc.isDateInToday(historyPrice.date) ? "Live, refreshes every 60 seconds" : nil,
+            subtitle: Calendar.utc.isDateInToday(historyPrice.date) ? BitcoinListRefresh.livePriceSubtitle : nil,
             priceText: format(value: historyPrice.eur, currency: displayCurrency)
         )
     }

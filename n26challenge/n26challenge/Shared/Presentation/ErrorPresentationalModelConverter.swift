@@ -3,7 +3,6 @@ import Foundation
 protocol ErrorPresentationalModelConverter: Sendable {
     func convert(_ error: Error) -> ErrorPresentationalModel
     func livePriceRefreshError() -> ErrorPresentationalModel
-    func historyPriceError() -> ErrorPresentationalModel
 }
 
 struct ErrorPresentationalModelConverterImpl: ErrorPresentationalModelConverter {
@@ -72,14 +71,6 @@ struct ErrorPresentationalModelConverterImpl: ErrorPresentationalModelConverter 
         ErrorPresentationalModel(
             title: "Live price not updated",
             message: "Could not refresh live price. Pull to retry.",
-            systemImage: "arrow.clockwise"
-        )
-    }
-    
-    func historyPriceError() -> ErrorPresentationalModel {
-        ErrorPresentationalModel(
-            title: "History price not updated",
-            message: "Pull to retry.",
             systemImage: "arrow.clockwise"
         )
     }
